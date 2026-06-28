@@ -1,4 +1,4 @@
-package com.gym.application.service.util;
+package com.gym.application.usecase.util;
 
 import java.util.Random;
 
