@@ -1,7 +1,10 @@
-package com.gym.application.usecase.util;
+package com.gym.application.service;
+
+import org.springframework.stereotype.Component;
 
 import java.util.Random;
 
+@Component
 public class PasswordGenerator {
     private final Random random;
 
