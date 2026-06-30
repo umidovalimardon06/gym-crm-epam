@@ -1,4 +1,4 @@
-package com.gym.application.port.input.trainee;
+package com.gym.application.port.input.trainee.retreive;
 
 import com.gym.domain.Trainer;
 
