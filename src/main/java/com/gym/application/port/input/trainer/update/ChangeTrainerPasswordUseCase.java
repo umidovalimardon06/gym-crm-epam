@@ -1,4 +1,4 @@
-package com.gym.application.port.input.trainer;
+package com.gym.application.port.input.trainer.update;
 
 import com.gym.domain.Trainer;
 

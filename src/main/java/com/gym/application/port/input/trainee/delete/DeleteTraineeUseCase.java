@@ -1,4 +1,4 @@
-package com.gym.application.port.input.trainee;
+package com.gym.application.port.input.trainee.delete;
 
 import com.gym.domain.Trainee;
 
