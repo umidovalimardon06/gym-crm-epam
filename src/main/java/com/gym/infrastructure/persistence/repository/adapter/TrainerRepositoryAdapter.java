@@ -24,6 +24,12 @@ public class TrainerRepositoryAdapter implements TrainerRepository {
     }
 
     @Override
+    public List<Trainer> findUnassignedActiveTrainersForTrainee(String traineeUsername) {
+        return jpa.findUnassignedActiveTrainersForTrainee(traineeUsername)
+                .stream().map(mapper::toDomain).toList();
+    }
+
+    @Override
     @Transactional
     public Trainer save(Trainer trainer) {
         if (trainer.getUserId() == null) {
