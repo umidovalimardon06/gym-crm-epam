@@ -46,4 +46,6 @@ public interface TrainingJpaRepository extends JpaRepository<TrainingEntity, Lon
             @Param("to") LocalDate to,
             @Param("traineeName") String traineeName
     );
+
+    void deleteAllByTrainee_Id(Long traineeId);
 }
