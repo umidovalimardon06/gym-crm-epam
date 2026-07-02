@@ -35,12 +35,12 @@ public class TrainingRepositoryAdapter implements TrainingRepository {
 
     @Override
     public Training save(Training training) {
-        TraineeEntity trainee = traineeJpa.findById(training.getTraineeId())
+        TraineeEntity trainee = traineeJpa.findByUser_Id(training.getTraineeId())
                 .orElseThrow(() -> new IllegalArgumentException(
-                        "Trainee not found: " + training.getTraineeId()));
-        TrainerEntity trainer = trainerJpa.findById(training.getTrainerId())
+                        "Trainee not found: userId=" + training.getTraineeId()));
+        TrainerEntity trainer = trainerJpa.findByUser_Id(training.getTrainerId())
                 .orElseThrow(() -> new IllegalArgumentException(
-                        "Trainer not found: " + training.getTrainerId()));
+                        "Trainer not found: userId=" + training.getTrainerId()));
 
         TrainingEntity entity = mapper.toEntity(training, trainee, trainer);
         return mapper.toDomain(jpa.save(entity));
