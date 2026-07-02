@@ -3,12 +3,15 @@ package com.gym.infrastructure.persistence.repository.adapter;
 import com.gym.application.port.output.TraineeRepository;
 import com.gym.domain.Trainee;
 import com.gym.infrastructure.persistence.entity.TraineeEntity;
+import com.gym.infrastructure.persistence.entity.TrainerEntity;
 import com.gym.infrastructure.persistence.entity.UserEntity;
 import com.gym.infrastructure.persistence.mapper.TraineeMapper;
 import com.gym.infrastructure.persistence.repository.jpa.TraineeJpaRepository;
+import com.gym.infrastructure.persistence.repository.jpa.TrainerJpaRepository;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 
@@ -16,10 +19,14 @@ import java.util.Optional;
 public class TraineeRepositoryAdapter implements TraineeRepository {
 
     private final TraineeJpaRepository jpa;
+    private final TrainerJpaRepository trainerJpa;
     private final TraineeMapper mapper;
 
-    public TraineeRepositoryAdapter(TraineeJpaRepository jpa, TraineeMapper mapper) {
+    public TraineeRepositoryAdapter(TraineeJpaRepository jpa,
+                                    TrainerJpaRepository trainerJpa,
+                                    TraineeMapper mapper) {
         this.jpa = jpa;
+        this.trainerJpa = trainerJpa;
         this.mapper = mapper;
     }
 
@@ -48,8 +55,25 @@ public class TraineeRepositoryAdapter implements TraineeRepository {
     }
 
     @Override
-    public Optional<Trainee> findById(Long id) {
-        return jpa.findById(id).map(mapper::toDomain);
+    @Transactional
+    public Trainee updateTrainers(String traineeUsername, List<Long> trainerUserIds) {
+        TraineeEntity trainee = jpa.findByUser_Username(traineeUsername)
+                .orElseThrow(() -> new IllegalStateException(
+                        "Trainee not found: " + traineeUsername));
+
+        List<TrainerEntity> newTrainers = trainerJpa.findAllByUser_IdIn(trainerUserIds);
+        if (newTrainers.size() != trainerUserIds.size()) {
+            throw new IllegalArgumentException(
+                    "One or more trainer ids not found: " + trainerUserIds);
+        }
+
+        trainee.setTrainers(new HashSet<>(newTrainers));
+        return mapper.toDomain(jpa.save(trainee));
+    }
+
+    @Override
+    public Optional<Trainee> findById(Long userId) {
+        return jpa.findByUser_Id(userId).map(mapper::toDomain);
     }
 
     @Override

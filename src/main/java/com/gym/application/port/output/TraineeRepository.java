@@ -12,4 +12,5 @@ public interface TraineeRepository {
     List<Trainee> findAll();
     void deleteByUsername(String username);
     boolean existsByUsername(String username);
+    Trainee updateTrainers(String traineeUsername, List<Long> trainerUserIds);
 }
