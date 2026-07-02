@@ -8,6 +8,7 @@ import com.gym.infrastructure.persistence.entity.UserEntity;
 import com.gym.infrastructure.persistence.mapper.TraineeMapper;
 import com.gym.infrastructure.persistence.repository.jpa.TraineeJpaRepository;
 import com.gym.infrastructure.persistence.repository.jpa.TrainerJpaRepository;
+import com.gym.infrastructure.persistence.repository.jpa.TrainingJpaRepository;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,12 +22,15 @@ public class TraineeRepositoryAdapter implements TraineeRepository {
     private final TraineeJpaRepository jpa;
     private final TrainerJpaRepository trainerJpa;
     private final TraineeMapper mapper;
+    private final TrainingJpaRepository trainingJpa;
 
     public TraineeRepositoryAdapter(TraineeJpaRepository jpa,
                                     TrainerJpaRepository trainerJpa,
+                                    TrainingJpaRepository trainingJpa,
                                     TraineeMapper mapper) {
         this.jpa = jpa;
         this.trainerJpa = trainerJpa;
+        this.trainingJpa = trainingJpa;
         this.mapper = mapper;
     }
 
@@ -89,9 +93,13 @@ public class TraineeRepositoryAdapter implements TraineeRepository {
     @Override
     @Transactional
     public void deleteByUsername(String username) {
-        jpa.deleteByUser_Username(username);
-    }
+        TraineeEntity trainee = jpa.findByUser_Username(username)
+                .orElseThrow(() -> new IllegalStateException(
+                        "Trainee not found: " + username));
 
+        trainingJpa.deleteAllByTrainee_Id(trainee.getId());
+        jpa.delete(trainee);
+    }
     @Override
     public boolean existsByUsername(String username) {
         return jpa.existsByUser_Username(username);
