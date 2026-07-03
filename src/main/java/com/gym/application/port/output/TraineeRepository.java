@@ -7,10 +7,10 @@ import java.util.Optional;
 
 public interface TraineeRepository {
     Trainee save(Trainee trainee);
-    Optional<Trainee> findById(Long id);
     Optional<Trainee> findByUsername(String username);
-    List<Trainee> findAll();
-    void deleteByUsername(String username);
-    boolean existsByUsername(String username);
     Trainee updateTrainers(String traineeUsername, List<Long> trainerUserIds);
+    void deleteByUsername(String username);
+    /*List<Trainee> findAll();
+    Optional<Trainee> findById(Long id);
+    boolean existsByUsername(String username);*/
 }

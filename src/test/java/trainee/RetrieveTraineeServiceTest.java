@@ -1,9 +1,10 @@
-package com.gym.application.usecase.trainee;
+package trainee;
 
 import com.gym.application.exception.NotFoundException;
 import com.gym.application.port.input.auth.AuthCredentials;
 import com.gym.application.port.input.auth.AuthenticateUseCase;
 import com.gym.application.port.output.TraineeRepository;
+import com.gym.application.usecase.trainee.RetrieveTraineeService;
 import com.gym.domain.Trainee;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -24,7 +25,8 @@ class RetrieveTraineeServiceTest {
     @Mock AuthenticateUseCase authenticator;
     @Mock TraineeRepository traineeRepository;
 
-    @InjectMocks RetrieveTraineeService service;
+    @InjectMocks
+    RetrieveTraineeService service;
 
     AuthCredentials auth;
     Trainee trainee;
