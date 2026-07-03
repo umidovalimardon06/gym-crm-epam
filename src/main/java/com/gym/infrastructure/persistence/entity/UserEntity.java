@@ -3,7 +3,7 @@ package com.gym.infrastructure.persistence.entity;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "users", uniqueConstraints = @UniqueConstraint(columnNames = "username"))
+@Table(name = "users")
 public class UserEntity {
 
     @Id
