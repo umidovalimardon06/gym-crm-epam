@@ -1,6 +1,8 @@
 package com.gym.application.usecase.trainee;
 
 import com.gym.application.exception.NotFoundException;
+import com.gym.application.exception.TraineeDeletionException;
+import com.gym.application.exception.TrainingCreationException;
 import com.gym.application.port.input.auth.AuthCredentials;
 import com.gym.application.port.input.auth.AuthenticateUseCase;
 import com.gym.application.port.input.trainee.delete.DeleteTraineeUseCase;
@@ -25,14 +27,14 @@ public class DeleteTraineeService implements DeleteTraineeUseCase {
     @Transactional
     public Trainee deleteTrainee(AuthCredentials auth, String username) {
         if (auth == null)
-            throw new IllegalArgumentException("auth is required");
+            throw new TraineeDeletionException("auth is required");
         if (username == null || username.isBlank())
-            throw new IllegalArgumentException("username is required");
+            throw new TraineeDeletionException("username is required");
 
         authenticator.authenticate(auth);
 
         if (!auth.username().equals(username)) {
-            throw new IllegalArgumentException("Cannot delete another user's account");
+            throw new TraineeDeletionException("Cannot delete another user's account");
         }
 
         Trainee trainee = traineeRepository.findByUsername(username)
