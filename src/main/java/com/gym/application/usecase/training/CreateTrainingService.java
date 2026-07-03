@@ -4,6 +4,8 @@ import com.gym.application.exception.TrainingCreationException;
 import com.gym.application.port.input.training.create.CreateTrainingUseCase;
 import com.gym.application.port.output.TrainingRepository;
 import com.gym.domain.Training;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -11,6 +13,8 @@ import java.time.LocalDate;
 
 @Service
 public class CreateTrainingService implements CreateTrainingUseCase {
+
+    private static final Logger log = LoggerFactory.getLogger(CreateTrainingService.class);
 
     private final TrainingRepository trainingRepository;
 
@@ -21,8 +25,15 @@ public class CreateTrainingService implements CreateTrainingUseCase {
     @Override
     @Transactional
     public Training addTraining(Training training) {
+        log.debug("Add training requested: traineeId={}, trainerId={}",
+                training != null ? training.getTraineeId() : null,
+                training != null ? training.getTrainerId() : null);
         validate(training);
-        return trainingRepository.save(training);
+
+        Training saved = trainingRepository.save(training);
+        log.info("Training added: id={}, traineeId={}, trainerId={}, date={}",
+                saved.getId(), saved.getTraineeId(), saved.getTrainerId(), saved.getTrainingDate());
+        return saved;
     }
 
     private void validate(Training t) {

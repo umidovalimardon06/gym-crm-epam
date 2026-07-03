@@ -7,11 +7,15 @@ import com.gym.application.port.output.TraineeRepository;
 import com.gym.application.service.PasswordGenerator;
 import com.gym.application.service.UsernameGenerator;
 import com.gym.domain.Trainee;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class CreateTraineeService implements CreateTraineeUseCase {
+
+    private static final Logger log = LoggerFactory.getLogger(CreateTraineeService.class);
 
     private final TraineeRepository traineeRepository;
     private final UsernameGenerator usernameGenerator;
@@ -28,6 +32,9 @@ public class CreateTraineeService implements CreateTraineeUseCase {
     @Override
     @Transactional
     public Trainee create(CreateTraineeCommand command) {
+        log.debug("Create trainee requested: firstName={}, lastName={}",
+                command != null ? command.firstName() : null,
+                command != null ? command.lastName() : null);
         validate(command);
 
         String username = usernameGenerator.generate(command.firstName(), command.lastName());
@@ -43,7 +50,10 @@ public class CreateTraineeService implements CreateTraineeUseCase {
                 command.address()
         );
         trainee.setActive(true);
-        return traineeRepository.save(trainee);
+
+        Trainee saved = traineeRepository.save(trainee);
+        log.info("Trainee created: username={}", saved.getUsername());
+        return saved;
     }
 
     private void validate(CreateTraineeCommand cmd) {
