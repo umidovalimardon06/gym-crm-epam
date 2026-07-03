@@ -1,5 +1,6 @@
 package com.gym.application.usecase.training;
 
+import com.gym.application.exception.TrainingCreationException;
 import com.gym.application.port.input.training.create.CreateTrainingUseCase;
 import com.gym.application.port.output.TrainingRepository;
 import com.gym.domain.Training;
@@ -26,22 +27,22 @@ public class CreateTrainingService implements CreateTrainingUseCase {
 
     private void validate(Training t) {
         if (t == null)
-            throw new IllegalArgumentException("training is required");
+            throw new TrainingCreationException("training is required");
         if (t.getTraineeId() == null)
-            throw new IllegalArgumentException("traineeId is required");
+            throw new TrainingCreationException("traineeId is required");
         if (t.getTrainerId() == null)
-            throw new IllegalArgumentException("trainerId is required");
+            throw new TrainingCreationException("trainerId is required");
         if (t.getTrainingName() == null || t.getTrainingName().isBlank())
-            throw new IllegalArgumentException("trainingName is required");
+            throw new TrainingCreationException("trainingName is required");
         if (t.getTrainingType() == null)
-            throw new IllegalArgumentException("trainingType is required");
+            throw new TrainingCreationException("trainingType is required");
         if (t.getTrainingDate() == null)
-            throw new IllegalArgumentException("trainingDate is required");
+            throw new TrainingCreationException("trainingDate is required");
         if (t.getTrainingDate().isBefore(LocalDate.now()))
-            throw new IllegalArgumentException("trainingDate cannot be in the past");
+            throw new TrainingCreationException("trainingDate cannot be in the past");
         if (t.getTrainingDuration() == null
                 || t.getTrainingDuration().isZero()
                 || t.getTrainingDuration().isNegative())
-            throw new IllegalArgumentException("trainingDuration must be positive");
+            throw new TrainingCreationException("trainingDuration must be positive");
     }
 }

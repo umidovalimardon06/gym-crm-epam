@@ -76,21 +76,6 @@ public class TraineeRepositoryAdapter implements TraineeRepository {
     }
 
     @Override
-    public Optional<Trainee> findById(Long userId) {
-        return jpa.findByUser_Id(userId).map(mapper::toDomain);
-    }
-
-    @Override
-    public Optional<Trainee> findByUsername(String username) {
-        return jpa.findByUser_Username(username).map(mapper::toDomain);
-    }
-
-    @Override
-    public List<Trainee> findAll() {
-        return jpa.findAll().stream().map(mapper::toDomain).toList();
-    }
-
-    @Override
     @Transactional
     public void deleteByUsername(String username) {
         TraineeEntity trainee = jpa.findByUser_Username(username)
@@ -99,6 +84,20 @@ public class TraineeRepositoryAdapter implements TraineeRepository {
 
         trainingJpa.deleteAllByTrainee_Id(trainee.getId());
         jpa.delete(trainee);
+    }
+
+    @Override
+    public Optional<Trainee> findByUsername(String username) {
+        return jpa.findByUser_Username(username).map(mapper::toDomain);
+    }
+    @Override
+    public Optional<Trainee> findById(Long userId) {
+        return jpa.findByUser_Id(userId).map(mapper::toDomain);
+    }
+
+    @Override
+    public List<Trainee> findAll() {
+        return jpa.findAll().stream().map(mapper::toDomain).toList();
     }
     @Override
     public boolean existsByUsername(String username) {
