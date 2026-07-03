@@ -1,5 +1,6 @@
 package com.gym.application.usecase.trainee;
 
+import com.gym.application.exception.CreationCommandException;
 import com.gym.application.port.input.trainee.create.CreateTraineeUseCase;
 import com.gym.application.port.input.trainee.create.CreateTraineeCommand;
 import com.gym.application.port.output.TraineeRepository;
@@ -46,10 +47,10 @@ public class CreateTraineeService implements CreateTraineeUseCase {
     }
 
     private void validate(CreateTraineeCommand cmd) {
-        if (cmd == null) throw new IllegalArgumentException("command is required");
+        if (cmd == null) throw new CreationCommandException("command is required");
         if (cmd.firstName() == null || cmd.firstName().isBlank())
-            throw new IllegalArgumentException("firstName is required");
+            throw new CreationCommandException("firstName is required");
         if (cmd.lastName() == null || cmd.lastName().isBlank())
-            throw new IllegalArgumentException("lastName is required");
+            throw new CreationCommandException("lastName is required");
     }
 }
