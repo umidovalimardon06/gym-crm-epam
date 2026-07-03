@@ -32,7 +32,6 @@ public class UpdateTraineeTrainersService implements UpdateTraineeTrainersUseCas
 
         var updated = traineeRepository.updateTrainers(traineeUsername, trainerIds);
 
-        // Fetch domain trainers to return
         return updated.getTrainerIds().stream()
                 .map(trainerRepository::findById)
                 .filter(java.util.Optional::isPresent)
