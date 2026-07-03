@@ -6,11 +6,15 @@ import com.gym.application.port.input.auth.AuthenticateUseCase;
 import com.gym.application.port.input.trainee.update.UpdateTraineeUseCase;
 import com.gym.application.port.output.TraineeRepository;
 import com.gym.domain.Trainee;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class UpdateTraineeService implements UpdateTraineeUseCase {
+
+    private static final Logger log = LoggerFactory.getLogger(UpdateTraineeService.class);
 
     private final AuthenticateUseCase authenticator;
     private final TraineeRepository traineeRepository;
@@ -25,14 +29,19 @@ public class UpdateTraineeService implements UpdateTraineeUseCase {
     @Transactional
     public Trainee updateTraineeProfile(AuthCredentials auth, Trainee updated) {
         validate(auth, updated);
+        log.debug("Update trainee profile requested: username={}", auth.username());
         authenticator.authenticate(auth);
 
         Trainee existing = traineeRepository.findByUsername(auth.username())
-                .orElseThrow(() -> new NotFoundException(
-                        "Trainee not found: " + auth.username()));
+                .orElseThrow(() -> {
+                    log.warn("Update trainee failed: not found, username={}", auth.username());
+                    return new NotFoundException("Trainee not found: " + auth.username());
+                });
 
         applyChanges(existing, updated);
-        return traineeRepository.save(existing);
+        Trainee saved = traineeRepository.save(existing);
+        log.info("Trainee profile updated: username={}", saved.getUsername());
+        return saved;
     }
 
     private void applyChanges(Trainee target, Trainee source) {
