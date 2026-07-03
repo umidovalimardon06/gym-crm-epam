@@ -62,7 +62,7 @@ public class TrainerRepositoryAdapter implements TrainerRepository {
         return jpa.findByUser_Username(username).map(mapper::toDomain);
     }
 
-/*    @Override
+    @Override
     public List<Trainer> findAll() {
         return jpa.findAll().stream().map(mapper::toDomain).toList();
     }
@@ -76,5 +76,5 @@ public class TrainerRepositoryAdapter implements TrainerRepository {
     @Override
     public boolean existsByUsername(String username) {
         return jpa.existsByUser_Username(username);
-    }*/
+    }
 }

@@ -13,4 +13,10 @@ public interface TrainerRepository {
     List<Trainer> findTrainersNotAssignedToTrainee(String traineeUsername);
     boolean existsByUsername(String username);*/
     List<Trainer> findUnassignedActiveTrainersForTrainee(String traineeUsername);
+
+    List<Trainer> findAll();
+
+    List<Trainer> findTrainersNotAssignedToTrainee(String traineeUsername);
+
+    boolean existsByUsername(String username);
 }

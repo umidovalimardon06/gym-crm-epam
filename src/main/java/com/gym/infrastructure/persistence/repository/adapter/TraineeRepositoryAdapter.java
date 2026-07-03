@@ -90,7 +90,6 @@ public class TraineeRepositoryAdapter implements TraineeRepository {
     public Optional<Trainee> findByUsername(String username) {
         return jpa.findByUser_Username(username).map(mapper::toDomain);
     }
-/*
     @Override
     public Optional<Trainee> findById(Long userId) {
         return jpa.findByUser_Id(userId).map(mapper::toDomain);
@@ -103,5 +102,5 @@ public class TraineeRepositoryAdapter implements TraineeRepository {
     @Override
     public boolean existsByUsername(String username) {
         return jpa.existsByUser_Username(username);
-    }*/
+    }
 }

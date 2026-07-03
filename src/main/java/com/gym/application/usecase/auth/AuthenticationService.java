@@ -51,45 +51,4 @@ public class AuthenticationService implements AuthenticateUseCase {
         return user;
     }
 
-    @Service
-    public static class ChangePasswordService implements ChangePasswordUseCase {
-
-        private final AuthenticateUseCase authenticator;
-        private final UserRepository userRepository;
-
-        public ChangePasswordService(AuthenticateUseCase authenticator,
-                                     UserRepository userRepository) {
-            this.authenticator = authenticator;
-            this.userRepository = userRepository;
-        }
-
-        @Override
-        @Transactional
-        public void changePassword(String username, String oldPassword, String newPassword) {
-            validate(username, oldPassword, newPassword);
-
-            authenticator.authenticate(new AuthCredentials(username, oldPassword));
-
-            if (oldPassword.equals(newPassword)) {
-                throw new IllegalArgumentException("New password must differ from old");
-            }
-
-            User user = userRepository.findByUsername(username)
-                    .orElseThrow(() -> new NotFoundException("User not found: " + username));
-
-            user.setPassword(newPassword);
-            userRepository.save(user);
-        }
-
-        private void validate(String username, String oldPassword, String newPassword) {
-            if (username == null || username.isBlank())
-                throw new IllegalArgumentException("username is required");
-            if (oldPassword == null || oldPassword.isBlank())
-                throw new IllegalArgumentException("oldPassword is required");
-            if (newPassword == null || newPassword.isBlank())
-                throw new IllegalArgumentException("newPassword is required");
-            if (newPassword.length() < 8)
-                throw new IllegalArgumentException("newPassword must be at least 8 characters");
-        }
-    }
 }
