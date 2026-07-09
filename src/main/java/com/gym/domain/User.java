@@ -2,7 +2,7 @@ package com.gym.domain;
 
 import java.util.Objects;
 
-public abstract class User {
+public class User {
     private Long userId;
     private String firstName;
     private String lastName;
@@ -10,9 +10,9 @@ public abstract class User {
     private String password;
     private boolean isActive;
 
-    protected User() {}
+    public User() {}
 
-    protected User(Long userId,
+    public User(Long userId,
                    String firstName,
                    String lastName,
                    String username,

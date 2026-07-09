@@ -2,8 +2,10 @@ package com.gym.infrastructure.config;
 
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.PropertySource;
 
 @Configuration
-@ComponentScan(basePackages = "com.gym.infrastructure")
+@ComponentScan("com.gym")
+@PropertySource("classpath:application.properties")
 public class AppConfig {
 }
