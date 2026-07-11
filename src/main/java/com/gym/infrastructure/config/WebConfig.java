@@ -2,6 +2,7 @@ package com.gym.infrastructure.config;
 
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -15,7 +16,7 @@ import java.util.List;
 
 @Configuration
 @EnableWebMvc
-@ComponentScan(basePackages = "com.gym.infrastructure.web")
+@ComponentScan(basePackages = "com.gym")
 public class WebConfig implements WebMvcConfigurer {
 
     @Override
@@ -28,18 +29,11 @@ public class WebConfig implements WebMvcConfigurer {
     }
 
     @Bean
-    public MappingJackson2HttpMessageConverter customJacksonConverter() {
-        JsonMapper objectMapper = JsonMapper.builder()
+    public JsonMapper jsonMapper() {
+        return JsonMapper.builder()
+                .addModule(new JavaTimeModule())
                 .configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false)
                 .configure(SerializationFeature.INDENT_OUTPUT, true)
                 .build();
-
-        return new MappingJackson2HttpMessageConverter(objectMapper);
-    }
-
-
-    @Override
-    public void configureMessageConverters(List<HttpMessageConverter<?>> converters) {
-        converters.add(customJacksonConverter());
     }
 }
