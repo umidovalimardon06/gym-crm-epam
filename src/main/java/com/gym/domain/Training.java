@@ -31,6 +31,15 @@ public class Training {
         this.trainingDuration = trainingDuration;
     }
 
+    public Training(Long traineeId, Long trainerId, String trainingName, TrainingType trainingType, LocalDate trainingDate, Duration trainingDuration) {
+        this.traineeId = traineeId;
+        this.trainerId = trainerId;
+        this.trainingName = trainingName;
+        this.trainingType = trainingType;
+        this.trainingDate = trainingDate;
+        this.trainingDuration = trainingDuration;
+    }
+
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
