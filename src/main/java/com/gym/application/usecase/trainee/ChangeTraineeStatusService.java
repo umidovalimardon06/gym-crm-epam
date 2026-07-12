@@ -4,6 +4,7 @@ import com.gym.application.exception.InvalidStateException;
 import com.gym.application.exception.NotFoundException;
 import com.gym.application.port.input.auth.AuthCredentials;
 import com.gym.application.port.input.auth.AuthenticateUseCase;
+import com.gym.application.port.input.trainee.update.ChangeTraineeStatusUseCase;
 import com.gym.application.port.input.trainer.update.ChangeTrainerStatusUseCase;
 import com.gym.application.port.output.TraineeRepository;
 import com.gym.domain.Trainee;
@@ -13,7 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-public class ChangeTraineeStatusService implements ChangeTrainerStatusUseCase {
+public class ChangeTraineeStatusService implements ChangeTraineeStatusUseCase {
 
     private static final Logger log = LoggerFactory.getLogger(ChangeTraineeStatusService.class);
 

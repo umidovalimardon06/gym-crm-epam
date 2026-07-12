@@ -4,7 +4,9 @@ import com.gym.application.port.input.auth.AuthCredentials;
 import com.gym.application.port.input.trainee.create.CreateTraineeCommand;
 import com.gym.application.port.input.trainee.create.CreateTraineeUseCase;
 import com.gym.application.port.input.trainee.delete.DeleteTraineeUseCase;
+import com.gym.application.port.input.trainee.update.ChangeTraineeStatusUseCase;
 import com.gym.domain.Trainee;
+import com.gym.infrastructure.web.dto.trainee.ChangeTraineeStatusRequest;
 import com.gym.infrastructure.web.dto.trainee.DeleteTraineeProfileRequest;
 import com.gym.infrastructure.web.dto.trainee.RegistrationResponse;
 import com.gym.infrastructure.web.dto.trainee.TraineeRegistrationRequest;
@@ -18,10 +20,12 @@ import org.springframework.web.bind.annotation.*;
 public class TraineeController {
     private final CreateTraineeUseCase createTraineeUseCase;
     private final DeleteTraineeUseCase deleteTraineeUseCase;
+    private final ChangeTraineeStatusUseCase changeTraineeStatusUseCase;
 
-    public TraineeController(CreateTraineeUseCase createTraineeUseCase, DeleteTraineeUseCase deleteTraineeUseCase) {
+    public TraineeController(CreateTraineeUseCase createTraineeUseCase, DeleteTraineeUseCase deleteTraineeUseCase, ChangeTraineeStatusUseCase changeTraineeStatusUseCase) {
         this.createTraineeUseCase = createTraineeUseCase;
         this.deleteTraineeUseCase = deleteTraineeUseCase;
+        this.changeTraineeStatusUseCase = changeTraineeStatusUseCase;
     }
 
     @PostMapping
@@ -51,4 +55,27 @@ public class TraineeController {
 
         return ResponseEntity.ok().build();
     }
+
+    @PatchMapping("/activate")
+    public ResponseEntity<Void> activate(
+            @Valid @RequestBody ChangeTraineeStatusRequest request) {
+        changeTraineeStatusUseCase.activate(new AuthCredentials(
+                request.username(),
+                request.password()
+        ));
+
+        return ResponseEntity.ok().build();
+    }
+
+    @PatchMapping("/deactivate")
+    public ResponseEntity<Void> deactivate(
+            @Valid @RequestBody ChangeTraineeStatusRequest request) {
+        changeTraineeStatusUseCase.deactivate(new AuthCredentials(
+                request.username(),
+                request.password()
+        ));
+
+        return ResponseEntity.ok().build();
+    }
+
 }
