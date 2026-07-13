@@ -3,25 +3,34 @@ package com.gym.infrastructure.web.controller;
 import com.gym.application.port.input.auth.AuthCredentials;
 import com.gym.application.port.input.trainer.create.CreateTrainerCommand;
 import com.gym.application.port.input.trainer.create.CreateTrainerUseCase;
+import com.gym.application.port.input.trainer.retrieve.RetrieveTrainerTrainingsUseCase;
 import com.gym.application.port.input.trainer.update.ChangeTrainerStatusUseCase;
 import com.gym.domain.Trainer;
+import com.gym.domain.Training;
 import com.gym.infrastructure.web.dto.trainee.ChangeTraineeStatusRequest;
 import com.gym.infrastructure.web.dto.trainer.RegistrationResponse;
 import com.gym.infrastructure.web.dto.trainer.TrainerRegistrationRequest;
+import com.gym.infrastructure.web.dto.training.TrainingResponse;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping(value = "/api/trainers", produces = "application/json", consumes = "application/json")
 public class TrainerController {
     private final CreateTrainerUseCase createTrainerUseCase;
     private final ChangeTrainerStatusUseCase changeTrainerStatusUseCase;
+    private final RetrieveTrainerTrainingsUseCase retrieveTrainerTrainingsUseCase;
 
-    public TrainerController(CreateTrainerUseCase createTrainerUseCase, ChangeTrainerStatusUseCase changeTrainerStatusUseCase) {
+    public TrainerController(CreateTrainerUseCase createTrainerUseCase,
+                             ChangeTrainerStatusUseCase changeTrainerStatusUseCase,
+                             RetrieveTrainerTrainingsUseCase retrieveTrainerTrainingsUseCase) {
         this.createTrainerUseCase = createTrainerUseCase;
         this.changeTrainerStatusUseCase = changeTrainerStatusUseCase;
+        this.retrieveTrainerTrainingsUseCase = retrieveTrainerTrainingsUseCase;
     }
 
     @PostMapping
@@ -64,4 +73,26 @@ public class TrainerController {
         return ResponseEntity.ok().build();
     }
 
+    @GetMapping("/{username}/trainings")
+    public ResponseEntity<List<TrainingResponse>> getTrainings(@PathVariable("username") String username) {
+
+        List<Training> traineeTrainings = retrieveTrainerTrainingsUseCase.getTrainerTrainings(
+                username,
+                null,
+                null,
+                null
+        );
+
+        List<TrainingResponse> trainingResponses = traineeTrainings.stream()
+                .map(t -> new TrainingResponse(
+                        t.getTrainingName(),
+                        t.getTrainingDate(),
+                        t.getTrainingType().name(),
+                        t.getTrainingDuration(),
+                        t.getTrainerId()
+                ))
+                .toList();
+
+        return ResponseEntity.ok().body(trainingResponses);
+    }
 }
