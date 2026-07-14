@@ -6,13 +6,11 @@ import com.gym.application.port.input.trainer.create.CreateTrainerUseCase;
 import com.gym.application.port.input.trainer.retrieve.RetrieveTrainerTrainingsUseCase;
 import com.gym.application.port.input.trainer.retrieve.RetrieveTrainerUseCase;
 import com.gym.application.port.input.trainer.update.ChangeTrainerStatusUseCase;
+import com.gym.application.port.input.trainer.update.UpdateTrainerUseCase;
 import com.gym.domain.Trainer;
 import com.gym.domain.Training;
 import com.gym.infrastructure.web.dto.trainee.ChangeTraineeStatusRequest;
-import com.gym.infrastructure.web.dto.trainer.GetTrainerProfileRequest;
-import com.gym.infrastructure.web.dto.trainer.RegistrationResponse;
-import com.gym.infrastructure.web.dto.trainer.TrainerProfileResponse;
-import com.gym.infrastructure.web.dto.trainer.TrainerRegistrationRequest;
+import com.gym.infrastructure.web.dto.trainer.*;
 import com.gym.infrastructure.web.dto.training.TrainingResponse;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -28,15 +26,18 @@ public class TrainerController {
     private final ChangeTrainerStatusUseCase changeTrainerStatusUseCase;
     private final RetrieveTrainerTrainingsUseCase retrieveTrainerTrainingsUseCase;
     private final RetrieveTrainerUseCase retrieveTrainerUseCase;
+    private final UpdateTrainerUseCase updateTrainerUseCase;
 
     public TrainerController(CreateTrainerUseCase createTrainerUseCase,
                              ChangeTrainerStatusUseCase changeTrainerStatusUseCase,
                              RetrieveTrainerTrainingsUseCase retrieveTrainerTrainingsUseCase,
-                             RetrieveTrainerUseCase retrieveTrainerUseCase) {
+                             RetrieveTrainerUseCase retrieveTrainerUseCase,
+                             UpdateTrainerUseCase updateTrainerUseCase) {
         this.createTrainerUseCase = createTrainerUseCase;
         this.changeTrainerStatusUseCase = changeTrainerStatusUseCase;
         this.retrieveTrainerTrainingsUseCase = retrieveTrainerTrainingsUseCase;
         this.retrieveTrainerUseCase = retrieveTrainerUseCase;
+        this.updateTrainerUseCase = updateTrainerUseCase;
     }
 
     @PostMapping
@@ -116,6 +117,32 @@ public class TrainerController {
                 t.getLastName(),
                 t.getSpecialization().name(),
                 t.isActive()
+        );
+
+        return ResponseEntity.ok(response);
+    }
+
+    @PutMapping
+    public ResponseEntity<UpdateTrainerProfileResponse> updateProfile(
+            @Valid @RequestBody UpdateTrainerProfileRequest request) {
+
+        Trainer updated = new Trainer();
+        updated.setFirstName(request.firstName());
+        updated.setLastName(request.lastName());
+        updated.setSpecialization(request.specialization());
+        updated.setActive(request.isActive());
+
+        Trainer saved = updateTrainerUseCase.updateTrainerProfile(
+                new AuthCredentials(request.username(), request.password()),
+                updated
+        );
+
+        UpdateTrainerProfileResponse response = new UpdateTrainerProfileResponse(
+                saved.getUsername(),
+                saved.getFirstName(),
+                saved.getLastName(),
+                saved.getSpecialization().name(),
+                saved.isActive()
         );
 
         return ResponseEntity.ok(response);
