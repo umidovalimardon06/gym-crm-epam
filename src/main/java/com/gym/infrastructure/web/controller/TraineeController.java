@@ -6,12 +6,10 @@ import com.gym.application.port.input.trainee.create.CreateTraineeUseCase;
 import com.gym.application.port.input.trainee.delete.DeleteTraineeUseCase;
 import com.gym.application.port.input.trainee.retreive.RetrieveTraineeTrainingsUseCase;
 import com.gym.application.port.input.trainee.update.ChangeTraineeStatusUseCase;
+import com.gym.application.port.input.trainee.update.PopulateTraineeTrainersUserCase;
 import com.gym.domain.Trainee;
 import com.gym.domain.Training;
-import com.gym.infrastructure.web.dto.trainee.ChangeTraineeStatusRequest;
-import com.gym.infrastructure.web.dto.trainee.DeleteTraineeProfileRequest;
-import com.gym.infrastructure.web.dto.trainee.RegistrationResponse;
-import com.gym.infrastructure.web.dto.trainee.TraineeRegistrationRequest;
+import com.gym.infrastructure.web.dto.trainee.*;
 import com.gym.infrastructure.web.dto.training.TrainingResponse;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -27,15 +25,18 @@ public class TraineeController {
     private final DeleteTraineeUseCase deleteTraineeUseCase;
     private final ChangeTraineeStatusUseCase changeTraineeStatusUseCase;
     private final RetrieveTraineeTrainingsUseCase retrieveTraineeTrainingsUseCase;
+    private final PopulateTraineeTrainersUserCase populateTraineeTrainersUseCase;
 
     public TraineeController(CreateTraineeUseCase createTraineeUseCase,
                              DeleteTraineeUseCase deleteTraineeUseCase,
                              ChangeTraineeStatusUseCase changeTraineeStatusUseCase,
-                             RetrieveTraineeTrainingsUseCase retrieveTraineeTrainingsUseCase) {
+                             RetrieveTraineeTrainingsUseCase retrieveTraineeTrainingsUseCase,
+                             PopulateTraineeTrainersUserCase populateTraineeTrainersUseCase) {
         this.createTraineeUseCase = createTraineeUseCase;
         this.deleteTraineeUseCase = deleteTraineeUseCase;
         this.changeTraineeStatusUseCase = changeTraineeStatusUseCase;
         this.retrieveTraineeTrainingsUseCase = retrieveTraineeTrainingsUseCase;
+        this.populateTraineeTrainersUseCase = populateTraineeTrainersUseCase;
     }
 
     @PostMapping
@@ -110,5 +111,23 @@ public class TraineeController {
                 .toList();
 
         return ResponseEntity.ok().body(trainingResponses);
+    }
+
+    @PutMapping("/trainers")
+    public ResponseEntity<PopulateTraineeTrainersResponse> populateTrainers(
+            @Valid @RequestBody PopulateTraineeTrainersRequest request) {
+
+        Trainee updated = populateTraineeTrainersUseCase.populateTraineeTrainers(
+                new AuthCredentials(request.username(), request.password()),
+                request.traineeUsername(),
+                request.trainerIds()
+        );
+
+        PopulateTraineeTrainersResponse response = new PopulateTraineeTrainersResponse(
+                updated.getUsername(),
+                updated.getTrainerIds()
+        );
+
+        return ResponseEntity.ok(response);
     }
 }
