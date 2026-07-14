@@ -8,6 +8,7 @@ import com.gym.application.port.input.trainee.retreive.RetrieveTraineeTrainingsU
 import com.gym.application.port.input.trainee.retreive.RetrieveTraineeUseCase;
 import com.gym.application.port.input.trainee.update.ChangeTraineeStatusUseCase;
 import com.gym.application.port.input.trainee.update.PopulateTraineeTrainersUserCase;
+import com.gym.application.port.input.trainee.update.UpdateTraineeUseCase;
 import com.gym.domain.Trainee;
 import com.gym.domain.Training;
 import com.gym.infrastructure.web.dto.trainee.*;
@@ -28,19 +29,22 @@ public class TraineeController {
     private final RetrieveTraineeTrainingsUseCase retrieveTraineeTrainingsUseCase;
     private final PopulateTraineeTrainersUserCase populateTraineeTrainersUseCase;
     private final RetrieveTraineeUseCase retrieveTraineeUseCase;
+    private final UpdateTraineeUseCase updateTraineeUseCase;
 
     public TraineeController(CreateTraineeUseCase createTraineeUseCase,
                              DeleteTraineeUseCase deleteTraineeUseCase,
                              ChangeTraineeStatusUseCase changeTraineeStatusUseCase,
                              RetrieveTraineeTrainingsUseCase retrieveTraineeTrainingsUseCase,
                              PopulateTraineeTrainersUserCase populateTraineeTrainersUseCase,
-                             RetrieveTraineeUseCase retrieveTraineeUseCase) {
+                             RetrieveTraineeUseCase retrieveTraineeUseCase,
+                             UpdateTraineeUseCase updateTraineeUseCase) {
         this.createTraineeUseCase = createTraineeUseCase;
         this.deleteTraineeUseCase = deleteTraineeUseCase;
         this.changeTraineeStatusUseCase = changeTraineeStatusUseCase;
         this.retrieveTraineeTrainingsUseCase = retrieveTraineeTrainingsUseCase;
         this.populateTraineeTrainersUseCase = populateTraineeTrainersUseCase;
         this.retrieveTraineeUseCase = retrieveTraineeUseCase;
+        this.updateTraineeUseCase = updateTraineeUseCase;
     }
 
     @PostMapping
@@ -151,6 +155,35 @@ public class TraineeController {
                 t.getAddress(),
                 t.isActive(),
                 t.getTrainerIds()
+        );
+
+        return ResponseEntity.ok(response);
+    }
+
+    @PutMapping
+    public ResponseEntity<UpdateTraineeProfileResponse> updateProfile(
+            @Valid @RequestBody UpdateTraineeProfileRequest request) {
+
+        Trainee updated = new Trainee();
+        updated.setFirstName(request.firstName());
+        updated.setLastName(request.lastName());
+        updated.setDateOfBirth(request.dateOfBirth());
+        updated.setAddress(request.address());
+        updated.setActive(request.isActive());
+
+        Trainee saved = updateTraineeUseCase.updateTraineeProfile(
+                new AuthCredentials(request.username(), request.password()),
+                updated
+        );
+
+        UpdateTraineeProfileResponse response = new UpdateTraineeProfileResponse(
+                saved.getUsername(),
+                saved.getFirstName(),
+                saved.getLastName(),
+                saved.getDateOfBirth(),
+                saved.getAddress(),
+                saved.isActive(),
+                saved.getTrainerIds()
         );
 
         return ResponseEntity.ok(response);
