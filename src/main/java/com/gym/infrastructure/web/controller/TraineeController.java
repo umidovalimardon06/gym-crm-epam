@@ -5,6 +5,7 @@ import com.gym.application.port.input.trainee.create.CreateTraineeCommand;
 import com.gym.application.port.input.trainee.create.CreateTraineeUseCase;
 import com.gym.application.port.input.trainee.delete.DeleteTraineeUseCase;
 import com.gym.application.port.input.trainee.retreive.RetrieveTraineeTrainingsUseCase;
+import com.gym.application.port.input.trainee.retreive.RetrieveTraineeUseCase;
 import com.gym.application.port.input.trainee.update.ChangeTraineeStatusUseCase;
 import com.gym.application.port.input.trainee.update.PopulateTraineeTrainersUserCase;
 import com.gym.domain.Trainee;
@@ -26,17 +27,20 @@ public class TraineeController {
     private final ChangeTraineeStatusUseCase changeTraineeStatusUseCase;
     private final RetrieveTraineeTrainingsUseCase retrieveTraineeTrainingsUseCase;
     private final PopulateTraineeTrainersUserCase populateTraineeTrainersUseCase;
+    private final RetrieveTraineeUseCase retrieveTraineeUseCase;
 
     public TraineeController(CreateTraineeUseCase createTraineeUseCase,
                              DeleteTraineeUseCase deleteTraineeUseCase,
                              ChangeTraineeStatusUseCase changeTraineeStatusUseCase,
                              RetrieveTraineeTrainingsUseCase retrieveTraineeTrainingsUseCase,
-                             PopulateTraineeTrainersUserCase populateTraineeTrainersUseCase) {
+                             PopulateTraineeTrainersUserCase populateTraineeTrainersUseCase,
+                             RetrieveTraineeUseCase retrieveTraineeUseCase) {
         this.createTraineeUseCase = createTraineeUseCase;
         this.deleteTraineeUseCase = deleteTraineeUseCase;
         this.changeTraineeStatusUseCase = changeTraineeStatusUseCase;
         this.retrieveTraineeTrainingsUseCase = retrieveTraineeTrainingsUseCase;
         this.populateTraineeTrainersUseCase = populateTraineeTrainersUseCase;
+        this.retrieveTraineeUseCase = retrieveTraineeUseCase;
     }
 
     @PostMapping
@@ -126,6 +130,27 @@ public class TraineeController {
         PopulateTraineeTrainersResponse response = new PopulateTraineeTrainersResponse(
                 updated.getUsername(),
                 updated.getTrainerIds()
+        );
+
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/profile")
+    public ResponseEntity<TraineeProfileResponse> getProfile(
+            @Valid @RequestBody GetTraineeProfileRequest request) {
+
+        Trainee t = retrieveTraineeUseCase.getTrainee(
+                new AuthCredentials(request.username(), request.password()),
+                request.traineeUsername()
+        );
+
+        TraineeProfileResponse response = new TraineeProfileResponse(
+                t.getFirstName(),
+                t.getLastName(),
+                t.getDateOfBirth(),
+                t.getAddress(),
+                t.isActive(),
+                t.getTrainerIds()
         );
 
         return ResponseEntity.ok(response);
