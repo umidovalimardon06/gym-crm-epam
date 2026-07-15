@@ -14,6 +14,8 @@ import com.gym.domain.Training;
 import com.gym.infrastructure.web.dto.trainee.*;
 import com.gym.infrastructure.web.dto.training.TrainingResponse;
 import jakarta.validation.Valid;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -21,8 +23,11 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping(value = "api/trainees",consumes = "application/json",produces = "application/json")
+@RequestMapping(value = "api/trainees", consumes = "application/json", produces = "application/json")
 public class TraineeController {
+
+    private static final Logger log = LoggerFactory.getLogger(TraineeController.class);
+
     private final CreateTraineeUseCase createTraineeUseCase;
     private final DeleteTraineeUseCase deleteTraineeUseCase;
     private final ChangeTraineeStatusUseCase changeTraineeStatusUseCase;
@@ -51,12 +56,17 @@ public class TraineeController {
     public ResponseEntity<RegistrationResponse> register(
             @Valid @RequestBody TraineeRegistrationRequest request) {
 
+        log.info("Received trainee registration request for {} {}",
+                request.firstName(), request.lastName());
+
         Trainee trainee = createTraineeUseCase.create(new CreateTraineeCommand(
                 request.firstName(),
                 request.lastName(),
                 request.dateOfBirth(),
                 request.address()
         ));
+
+        log.info("Trainee registered successfully with username {}", trainee.getUsername());
 
         RegistrationResponse response = new RegistrationResponse(
                 trainee.getUsername(),
@@ -67,10 +77,16 @@ public class TraineeController {
     }
 
     @DeleteMapping("/delete")
-    public ResponseEntity<Void> deleteProfile(@Valid @RequestBody DeleteTraineeProfileRequest request) {
-        deleteTraineeUseCase.deleteTrainee(new AuthCredentials(
-                request.username(),
-                request.password()), request.usernameToDelete());
+    public ResponseEntity<Void> deleteProfile(
+            @Valid @RequestBody DeleteTraineeProfileRequest request) {
+
+        log.info("Received delete request for trainee {}", request.usernameToDelete());
+
+        deleteTraineeUseCase.deleteTrainee(
+                new AuthCredentials(request.username(), request.password()),
+                request.usernameToDelete());
+
+        log.info("Deleted trainee {}", request.usernameToDelete());
 
         return ResponseEntity.ok().build();
     }
@@ -78,10 +94,13 @@ public class TraineeController {
     @PatchMapping("/activate")
     public ResponseEntity<Void> activate(
             @Valid @RequestBody ChangeTraineeStatusRequest request) {
-        changeTraineeStatusUseCase.activate(new AuthCredentials(
-                request.username(),
-                request.password()
-        ));
+
+        log.info("Received activation request for trainee {}", request.username());
+
+        changeTraineeStatusUseCase.activate(
+                new AuthCredentials(request.username(), request.password()));
+
+        log.info("Activated trainee {}", request.username());
 
         return ResponseEntity.ok().build();
     }
@@ -89,16 +108,22 @@ public class TraineeController {
     @PatchMapping("/deactivate")
     public ResponseEntity<Void> deactivate(
             @Valid @RequestBody ChangeTraineeStatusRequest request) {
-        changeTraineeStatusUseCase.deactivate(new AuthCredentials(
-                request.username(),
-                request.password()
-        ));
+
+        log.info("Received deactivation request for trainee {}", request.username());
+
+        changeTraineeStatusUseCase.deactivate(
+                new AuthCredentials(request.username(), request.password()));
+
+        log.info("Deactivated trainee {}", request.username());
 
         return ResponseEntity.ok().build();
     }
 
     @GetMapping("/{username}/trainings")
-    public ResponseEntity<List<TrainingResponse>> getTrainings(@PathVariable("username") String username) {
+    public ResponseEntity<List<TrainingResponse>> getTrainings(
+            @PathVariable("username") String username) {
+
+        log.info("Received training retrieval request for trainee {}", username);
 
         List<Training> traineeTrainings = retrieveTraineeTrainingsUseCase.getTraineeTrainings(
                 username,
@@ -118,18 +143,26 @@ public class TraineeController {
                 ))
                 .toList();
 
-        return ResponseEntity.ok().body(trainingResponses);
+        log.info("Retrieved {} trainings for trainee {}",
+                trainingResponses.size(), username);
+
+        return ResponseEntity.ok(trainingResponses);
     }
 
     @PutMapping("/trainers")
     public ResponseEntity<PopulateTraineeTrainersResponse> populateTrainers(
             @Valid @RequestBody PopulateTraineeTrainersRequest request) {
 
+        log.info("Received trainer assignment request for trainee {}",
+                request.traineeUsername());
+
         Trainee updated = populateTraineeTrainersUseCase.populateTraineeTrainers(
                 new AuthCredentials(request.username(), request.password()),
                 request.traineeUsername(),
                 request.trainerIds()
         );
+
+        log.info("Updated trainers for trainee {}", updated.getUsername());
 
         PopulateTraineeTrainersResponse response = new PopulateTraineeTrainersResponse(
                 updated.getUsername(),
@@ -143,10 +176,15 @@ public class TraineeController {
     public ResponseEntity<TraineeProfileResponse> getProfile(
             @Valid @RequestBody GetTraineeProfileRequest request) {
 
+        log.info("Received profile retrieval request for trainee {}",
+                request.traineeUsername());
+
         Trainee t = retrieveTraineeUseCase.getTrainee(
                 new AuthCredentials(request.username(), request.password()),
                 request.traineeUsername()
         );
+
+        log.info("Retrieved profile for trainee {}", t.getUsername());
 
         TraineeProfileResponse response = new TraineeProfileResponse(
                 t.getFirstName(),
@@ -164,6 +202,9 @@ public class TraineeController {
     public ResponseEntity<UpdateTraineeProfileResponse> updateProfile(
             @Valid @RequestBody UpdateTraineeProfileRequest request) {
 
+        log.info("Received profile update request for trainee {}",
+                request.username());
+
         Trainee updated = new Trainee();
         updated.setFirstName(request.firstName());
         updated.setLastName(request.lastName());
@@ -175,6 +216,8 @@ public class TraineeController {
                 new AuthCredentials(request.username(), request.password()),
                 updated
         );
+
+        log.info("Updated profile for trainee {}", saved.getUsername());
 
         UpdateTraineeProfileResponse response = new UpdateTraineeProfileResponse(
                 saved.getUsername(),
