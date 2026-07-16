@@ -30,16 +30,16 @@ public class AuthController {
     @GetMapping("/login")
     public ResponseEntity<Void> login(@Valid @RequestBody LoginRequest request) {
 
-        log.info("Authentication request received for username: {}", request.firstName());
+        log.info("Authentication request received for username: {}", request.username());
 
         authenticateUseCase.authenticate(
                 new AuthCredentials(
-                        request.firstName(),
-                        request.lastName()
+                        request.username(),
+                        request.password()
                 )
         );
 
-        log.info("Authentication successful for username: {}", request.firstName());
+        log.info("Authentication successful for username: {}", request.username());
 
         return ResponseEntity.ok().build();
     }

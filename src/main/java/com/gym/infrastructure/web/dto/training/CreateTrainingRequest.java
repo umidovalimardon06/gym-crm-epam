@@ -24,6 +24,5 @@ public record CreateTrainingRequest(
         @FutureOrPresent(message = "Training date must be today or in the future")
         LocalDate trainingDate,
         @NotNull(message = "Training duration is required")
-        @Positive(message = "Training duration must be positive")
         Duration trainingDuration
 ) {}

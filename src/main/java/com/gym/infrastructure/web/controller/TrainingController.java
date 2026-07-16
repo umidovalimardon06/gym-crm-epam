@@ -34,6 +34,7 @@ public class TrainingController {
     public ResponseEntity<CreateTrainingResponse> createTraining(
             @Valid @RequestBody CreateTrainingRequest request) {
 
+        System.out.println("---------------");
         log.info("Received training creation request: traineeId={}, trainerId={}, trainingName={}",
                 request.traineeId(), request.trainerId(), request.trainingName());
 
