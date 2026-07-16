@@ -55,3 +55,7 @@ infrastructure/
 | Update trainer profile | `PUT /api/trainers` | `TrainerController` | `UpdateTrainerUseCase` |
 | Create training | `POST /api/trainings` | `TrainingController` | `CreateTrainingUseCase` |
 | Retrieve training types | `GET /api/trainings/types` | `TrainingController` | `GetTrainingTypesUseCase` |
+
+![diagram](flow.png)
+
+[Endpoint Documentation (Notion)](https://app.notion.com/p/GYM-CRM-39fd31beaafb80d9b498e501d444f3d7?source=copy_link)
