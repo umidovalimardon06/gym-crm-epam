@@ -1,112 +1,61 @@
-# Gym CRM — Hibernate Module Documentation
+# Infrastructure: Web-Layer
 
-## Project Structure
-
-```
-gym-crm-hibernate/src
+```text
+infrastructure/
+├── config/
+│   ├── AppConfig.java
+│   ├── PersistenceConfig.java
+│   ├── WebConfig.java                  @EnableWebMvc,Jackson(LocalDate),CORS
+│   └── WebAppInitializer.java          Servlet container bootstrap
 │
-├── main/
-│   └── java/com/gym/
-│       │
-│       ├── Main.java
-│       │
-│       ├── domain/
-│       │   ├── User.java
-│       │   ├── Training.java
-│       │   ├── Trainee.java
-│       │   ├── Trainer.java
-│       │   └── TrainingType.java          [enum]
-│       │
-│       ├── application/
-│       │   ├── exception/
-│       │   │
-│       │   ├── port/input/
-│       │   │   ├── auth/
-│       │   │   ├── trainee/
-│       │   │   ├── trainer/
-│       │   │   └── training/
-│       │   │
-│       │   ├── port/output/
-│       │   │
-│       │   ├── service/                    (UsernameGenerator, PasswordGenerator)
-│       │   │
-│       │   └── usecase/
-│       │       ├── auth/                   (Authentication, ChangePassword)
-│       │       ├── trainee/                (7 services — Create/Update/Delete/Retrieve/Status/Trainings/Trainers)
-│       │       ├── trainer/                (6 services — mirrors trainee side)
-│       │       └── training/               (CreateTrainingService)
-│       │
-│       └── infrastructure/
-│           ├── config/                     (PersistenceConfig, AppConfig)
-│           └── persistence/
-│               ├── entity/                 (4 JPA entities)
-│               ├── mapper/                 (4 domain ↔ entity mappers)
-│               └── repository/
-│                   ├── adapter/            (4 port implementations)
-│                   └── jpa/                (4 Spring Data interfaces)
+├── persistence/
+│   ├── entity/
+│   ├── mapper/
+│   └── repository/
+│       ├── jpa/
+│       └── adapter/
 │
-└── test/
-    ├── auth/
-    ├── trainee/
-    ├── trainer/
-    └── training/
+└── web/
+    ├── controller/
+    │   ├── AuthController.java        Login, password change
+    │   ├── TraineeController.java     Create, delete, update, activate/deactivate,get-trainings,assign trainer, get profile
+    │   ├── TrainerController.java     Create, update, activate/deactivate,get trainings, get profile
+    │   └── TrainingController.java    Create training, get training types
+    │
+    ├── dto/
+    │   ├── auth/
+    │   ├── trainee/
+    │   ├── trainer/
+    │   ├── training/
+    │   └── error/
+    │
+    └── exception/
+        └── GlobalExceptionHandler.java
 ```
 
 ---
 
-## Module Descriptions
+# REST API Endpoint Mapping
 
-### `infrastructure.config.PersistenceConfig`
-- Reads properties from `application.properties`.
-- Declares beans for `DataSource`, `EntityManagerFactory`, and `TransactionManager`.
+| Operation | Endpoint | Controller | Use Case |
+|----------|----------|------------|----------|
+| Authenticate a user | `GET /api/auth/login` | `AuthController` | `AuthenticateUseCase` |
+| Change user password | `PUT /api/auth/password` | `AuthController` | `ChangePasswordUseCase` |
+| Create trainee | `POST /api/trainees` | `TraineeController` | `CreateTraineeUseCase` |
+| Create trainer | `POST /api/trainers` | `TrainerController` | `CreateTrainerUseCase` |
+| Delete trainee | `DELETE /api/trainees` | `TraineeController` | `DeleteTraineeUseCase` |
+| Activate or deactivate trainee | `PATCH /api/trainees/activate` | `TraineeController` | `ChangeTraineeStatusUseCase` |
+| Activate or deactivate trainer | `PATCH /api/trainers/activate` | `TrainerController` | `ChangeTrainerStatusUseCase` |
+| Retrieve trainee trainings | `GET /api/trainees/{username}/trainings` | `TraineeController` | `RetrieveTraineeTrainingsUseCase` |
+| Retrieve trainer trainings | `GET /api/trainers/{username}/trainings` | `TrainerController` | `RetrieveTrainerTrainingsUseCase` |
+| Assign trainers to a trainee | `PUT /api/trainees/trainers` | `TraineeController` | `PopulateTraineeTrainersUseCase` |
+| Retrieve trainee profile | `GET /api/trainees/profile` | `TraineeController` | `RetrieveTraineeUseCase` |
+| Retrieve trainer profile | `GET /api/trainers/profile` | `TrainerController` | `RetrieveTrainerUseCase` |
+| Update trainee profile | `PUT /api/trainees` | `TraineeController` | `UpdateTraineeUseCase` |
+| Update trainer profile | `PUT /api/trainers` | `TrainerController` | `UpdateTrainerUseCase` |
+| Create training | `POST /api/trainings` | `TrainingController` | `CreateTrainingUseCase` |
+| Retrieve training types | `GET /api/trainings/types` | `TrainingController` | `GetTrainingTypesUseCase` |
 
-### `infrastructure.persistence.entity`
-- Contains 4 JPA entity classes, which together map to 5 database tables.
+![diagram](flow.png)
 
-![diagram](entities.png)
-
-### `infrastructure.persistence.mapper`
-- Provides domain ↔ entity mapping.
-- High-level services only work with domain objects (`User`, `Trainee`, `Trainer`, `Training`).
-- Low-level persistence code only works with entity objects (`UserEntity`, `TraineeEntity`, `TrainerEntity`, `TrainingEntity`).
-
-### `infrastructure.persistence.repository.adapter`
-- Adapter classes implementing the `application.port.output` interfaces.
-- Delegate to the JPA repositories described below.
-
-### `infrastructure.persistence.repository.jpa`
-- Spring Data repository interfaces.
-- Some methods use JPQL for custom queries.
-
----
-
-## Application Layer Responsibilities
-
-| Package | Responsibility |
-|---|---|
-| `application.port.input` | Defines the use-case interfaces (contracts for each functionality) |
-| `application.port.output` | Defines helper DB operation contracts (repository ports) |
-| `application.usecase` | Implements the actual functionality behind each use case |
-
----
-
-## Functional Requirements (16)
-
-| # | Functionality |
-|---|---|
-| 1 | Register New Trainee |
-| 2 | Register New Trainer |
-| 3 | Authenticate User (Login) |
-| 4 | Change Password |
-| 5 | Retrieve Trainee Profile |
-| 6 | Update Trainee Profile |
-| 7 | Activate/Deactivate Trainee |
-| 8 | Delete Trainee Profile |
-| 9 | Retrieve Trainer Profile |
-| 10 | Update Trainer Profile |
-| 11 | Activate/Deactivate Trainer |
-| 12 | Get Trainers Not Assigned to Trainee |
-| 13 | Update Trainee's Assigned Trainers |
-| 14 | Add New Training |
-| 15 | Get Trainee Trainings List (with filters) |
-| 16 | Get Trainer Trainings List (with filters) |
+[Endpoint Documentation (Notion)](https://app.notion.com/p/GYM-CRM-39fd31beaafb80d9b498e501d444f3d7?source=copy_link)

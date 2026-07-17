@@ -2,5 +2,11 @@ package com.gym.domain;
 
 public enum TrainingType {
     CARDIO,
-    STRENGTH
+    STRENGTH,
+    YOGA,
+    PILATES,
+    CROSSFIT,
+    BOXING,
+    SWIMMING,
+    CYCLING
 }

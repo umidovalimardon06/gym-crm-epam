@@ -43,4 +43,7 @@ public interface TrainerJpaRepository extends JpaRepository<TrainerEntity, Long>
     List<TrainerEntity> findAllByUser_IsActiveTrue();
 
     List<TrainerEntity> findAllByUser_IdIn(Collection<Long> userIds);
+
+    @Override
+    Optional<TrainerEntity> findById(Long aLong);
 }
