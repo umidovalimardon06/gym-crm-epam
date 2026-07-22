@@ -3,6 +3,7 @@ package com.gym.infrastructure.web.controller;
 import com.gym.application.port.input.auth.AuthCredentials;
 import com.gym.application.port.input.auth.AuthenticateUseCase;
 import com.gym.application.port.input.auth.ChangePasswordUseCase;
+import com.gym.infrastructure.metrics.GymMetrics;
 import com.gym.infrastructure.web.dto.auth.ChangePasswordRequest;
 import com.gym.infrastructure.web.dto.auth.LoginRequest;
 import jakarta.validation.Valid;
@@ -14,34 +15,33 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
-
     private static final Logger log = LoggerFactory.getLogger(AuthController.class);
-
     private final AuthenticateUseCase authenticateUseCase;
     private final ChangePasswordUseCase changePasswordUseCase;
+    private final GymMetrics gymMetrics;
 
     public AuthController(
             AuthenticateUseCase authenticateUseCase,
-            ChangePasswordUseCase changePasswordUseCase) {
+            ChangePasswordUseCase changePasswordUseCase,
+            GymMetrics gymMetrics) {
         this.authenticateUseCase = authenticateUseCase;
         this.changePasswordUseCase = changePasswordUseCase;
+        this.gymMetrics = gymMetrics;
     }
 
     @GetMapping("/login")
     public ResponseEntity<Void> login(@Valid @RequestBody LoginRequest request) {
-
-        log.info("Authentication request received for username: {}", request.username());
-
-        authenticateUseCase.authenticate(
-                new AuthCredentials(
-                        request.username(),
-                        request.password()
-                )
-        );
-
-        log.info("Authentication successful for username: {}", request.username());
-
-        return ResponseEntity.ok().build();
+        return gymMetrics.getAuthLatency().record(() -> {
+            try {
+                authenticateUseCase.authenticate(
+                        new AuthCredentials(request.username(), request.password())
+                );
+                return ResponseEntity.ok().<Void>build();
+            } catch (Exception e) {
+                gymMetrics.incrementAuthFailures();
+                throw e;
+            }
+        });
     }
 
     @PutMapping("/password")

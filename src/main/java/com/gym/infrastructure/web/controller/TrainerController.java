@@ -9,6 +9,7 @@ import com.gym.application.port.input.trainer.update.ChangeTrainerStatusUseCase;
 import com.gym.application.port.input.trainer.update.UpdateTrainerUseCase;
 import com.gym.domain.Trainer;
 import com.gym.domain.Training;
+import com.gym.infrastructure.metrics.GymMetrics;
 import com.gym.infrastructure.web.dto.trainee.ChangeTraineeStatusRequest;
 import com.gym.infrastructure.web.dto.trainer.*;
 import com.gym.infrastructure.web.dto.training.TrainingResponse;
@@ -24,25 +25,26 @@ import java.util.List;
 @RestController
 @RequestMapping(value = "/api/trainers", produces = "application/json", consumes = "application/json")
 public class TrainerController {
-
     private static final Logger log = LoggerFactory.getLogger(TrainerController.class);
-
     private final CreateTrainerUseCase createTrainerUseCase;
     private final ChangeTrainerStatusUseCase changeTrainerStatusUseCase;
     private final RetrieveTrainerTrainingsUseCase retrieveTrainerTrainingsUseCase;
     private final RetrieveTrainerUseCase retrieveTrainerUseCase;
     private final UpdateTrainerUseCase updateTrainerUseCase;
+    private final GymMetrics gymMetrics;
 
     public TrainerController(CreateTrainerUseCase createTrainerUseCase,
                              ChangeTrainerStatusUseCase changeTrainerStatusUseCase,
                              RetrieveTrainerTrainingsUseCase retrieveTrainerTrainingsUseCase,
                              RetrieveTrainerUseCase retrieveTrainerUseCase,
-                             UpdateTrainerUseCase updateTrainerUseCase) {
+                             UpdateTrainerUseCase updateTrainerUseCase,
+                             GymMetrics gymMetrics) {
         this.createTrainerUseCase = createTrainerUseCase;
         this.changeTrainerStatusUseCase = changeTrainerStatusUseCase;
         this.retrieveTrainerTrainingsUseCase = retrieveTrainerTrainingsUseCase;
         this.retrieveTrainerUseCase = retrieveTrainerUseCase;
         this.updateTrainerUseCase = updateTrainerUseCase;
+        this.gymMetrics = gymMetrics;
     }
 
     @PostMapping
@@ -65,6 +67,7 @@ public class TrainerController {
                 trainer.getPassword()
         );
 
+        gymMetrics.incrementTrainerRegistrations();
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
