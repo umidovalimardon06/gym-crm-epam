@@ -11,6 +11,7 @@ import com.gym.application.port.input.trainee.update.PopulateTraineeTrainersUser
 import com.gym.application.port.input.trainee.update.UpdateTraineeUseCase;
 import com.gym.domain.Trainee;
 import com.gym.domain.Training;
+import com.gym.infrastructure.metrics.GymMetrics;
 import com.gym.infrastructure.web.dto.trainee.*;
 import com.gym.infrastructure.web.dto.training.TrainingResponse;
 import jakarta.validation.Valid;
@@ -25,9 +26,7 @@ import java.util.List;
 @RestController
 @RequestMapping(value = "api/trainees", consumes = "application/json", produces = "application/json")
 public class TraineeController {
-
     private static final Logger log = LoggerFactory.getLogger(TraineeController.class);
-
     private final CreateTraineeUseCase createTraineeUseCase;
     private final DeleteTraineeUseCase deleteTraineeUseCase;
     private final ChangeTraineeStatusUseCase changeTraineeStatusUseCase;
@@ -35,6 +34,7 @@ public class TraineeController {
     private final PopulateTraineeTrainersUserCase populateTraineeTrainersUseCase;
     private final RetrieveTraineeUseCase retrieveTraineeUseCase;
     private final UpdateTraineeUseCase updateTraineeUseCase;
+    private final GymMetrics gymMetrics;
 
     public TraineeController(CreateTraineeUseCase createTraineeUseCase,
                              DeleteTraineeUseCase deleteTraineeUseCase,
@@ -42,7 +42,8 @@ public class TraineeController {
                              RetrieveTraineeTrainingsUseCase retrieveTraineeTrainingsUseCase,
                              PopulateTraineeTrainersUserCase populateTraineeTrainersUseCase,
                              RetrieveTraineeUseCase retrieveTraineeUseCase,
-                             UpdateTraineeUseCase updateTraineeUseCase) {
+                             UpdateTraineeUseCase updateTraineeUseCase,
+                             GymMetrics gymMetrics) {
         this.createTraineeUseCase = createTraineeUseCase;
         this.deleteTraineeUseCase = deleteTraineeUseCase;
         this.changeTraineeStatusUseCase = changeTraineeStatusUseCase;
@@ -50,6 +51,7 @@ public class TraineeController {
         this.populateTraineeTrainersUseCase = populateTraineeTrainersUseCase;
         this.retrieveTraineeUseCase = retrieveTraineeUseCase;
         this.updateTraineeUseCase = updateTraineeUseCase;
+        this.gymMetrics = gymMetrics;
     }
 
     @PostMapping
@@ -73,6 +75,7 @@ public class TraineeController {
                 trainee.getPassword()
         );
 
+        gymMetrics.incrementTraineeRegistrations();
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 

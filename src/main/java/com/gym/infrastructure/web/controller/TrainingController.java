@@ -4,6 +4,7 @@ import com.gym.application.port.input.training.create.CreateTrainingUseCase;
 import com.gym.application.port.input.training.retrieve.GetTrainingTypesUseCase;
 import com.gym.domain.Training;
 import com.gym.domain.TrainingType;
+import com.gym.infrastructure.metrics.GymMetrics;
 import com.gym.infrastructure.web.dto.training.CreateTrainingRequest;
 import com.gym.infrastructure.web.dto.training.CreateTrainingResponse;
 import jakarta.validation.Valid;
@@ -18,16 +19,17 @@ import java.util.List;
 @RestController
 @RequestMapping(value = "/api/trainings", consumes = "application/json", produces = "application/json")
 public class TrainingController {
-
     private static final Logger log = LoggerFactory.getLogger(TrainingController.class);
-
     private final CreateTrainingUseCase createTrainingUseCase;
     private final GetTrainingTypesUseCase getTrainingTypesUseCase;
+    private final GymMetrics gymMetrics;
 
     public TrainingController(CreateTrainingUseCase createTrainingUseCase,
-                              GetTrainingTypesUseCase getTrainingTypesUseCase) {
+                              GetTrainingTypesUseCase getTrainingTypesUseCase,
+                              GymMetrics gymMetrics) {
         this.createTrainingUseCase = createTrainingUseCase;
         this.getTrainingTypesUseCase = getTrainingTypesUseCase;
+        this.gymMetrics = gymMetrics;
     }
 
     @PostMapping
@@ -56,6 +58,7 @@ public class TrainingController {
                 training.getTrainingDuration()
         );
 
+        gymMetrics.incrementTrainingsCreated();
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 

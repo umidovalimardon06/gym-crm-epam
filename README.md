@@ -1,61 +1,75 @@
-# Infrastructure: Web-Layer
+# Feature Structure
 
 ```text
-infrastructure/
-├── config/
-│   ├── AppConfig.java
-│   ├── PersistenceConfig.java
-│   ├── WebConfig.java                  @EnableWebMvc,Jackson(LocalDate),CORS
-│   └── WebAppInitializer.java          Servlet container bootstrap
-│
-├── persistence/
-│   ├── entity/
-│   ├── mapper/
-│   └── repository/
-│       ├── jpa/
-│       └── adapter/
-│
-└── web/
-    ├── controller/
-    │   ├── AuthController.java        Login, password change
-    │   ├── TraineeController.java     Create, delete, update, activate/deactivate,get-trainings,assign trainer, get profile
-    │   ├── TrainerController.java     Create, update, activate/deactivate,get trainings, get profile
-    │   └── TrainingController.java    Create training, get training types
-    │
-    ├── dto/
-    │   ├── auth/
-    │   ├── trainee/
-    │   ├── trainer/
-    │   ├── training/
-    │   └── error/
-    │
-    └── exception/
-        └── GlobalExceptionHandler.java
+monitoring/
+└── prometheus.yml
+
+src/main/java/com/gym/infrastructure/
+├── actuator/
+│   ├── AppEndpoint.java
+│   ├── SystemResourcesEndpoint.java
+│   ├── TrainingStatsEndpoint.java
+│   └── UserStatsEndpoint.java
+└── metrics/
+    └── GymMetrics.java
 ```
+
+# Implemented Features
+
+## 1. Migrated to Spring Boot
+
+Migrated the project from Spring Framework to Spring Boot by:
+
+- Spring Boot parent
+- Spring Boot starters
+- Migrating configuration to `application.properties`
 
 ---
 
-# REST API Endpoint Mapping
+## 2. Added Development Profile
 
-| Operation | Endpoint | Controller | Use Case |
-|----------|----------|------------|----------|
-| Authenticate a user | `GET /api/auth/login` | `AuthController` | `AuthenticateUseCase` |
-| Change user password | `PUT /api/auth/password` | `AuthController` | `ChangePasswordUseCase` |
-| Create trainee | `POST /api/trainees` | `TraineeController` | `CreateTraineeUseCase` |
-| Create trainer | `POST /api/trainers` | `TrainerController` | `CreateTrainerUseCase` |
-| Delete trainee | `DELETE /api/trainees` | `TraineeController` | `DeleteTraineeUseCase` |
-| Activate or deactivate trainee | `PATCH /api/trainees/activate` | `TraineeController` | `ChangeTraineeStatusUseCase` |
-| Activate or deactivate trainer | `PATCH /api/trainers/activate` | `TrainerController` | `ChangeTrainerStatusUseCase` |
-| Retrieve trainee trainings | `GET /api/trainees/{username}/trainings` | `TraineeController` | `RetrieveTraineeTrainingsUseCase` |
-| Retrieve trainer trainings | `GET /api/trainers/{username}/trainings` | `TrainerController` | `RetrieveTrainerTrainingsUseCase` |
-| Assign trainers to a trainee | `PUT /api/trainees/trainers` | `TraineeController` | `PopulateTraineeTrainersUseCase` |
-| Retrieve trainee profile | `GET /api/trainees/profile` | `TraineeController` | `RetrieveTraineeUseCase` |
-| Retrieve trainer profile | `GET /api/trainers/profile` | `TrainerController` | `RetrieveTrainerUseCase` |
-| Update trainee profile | `PUT /api/trainees` | `TraineeController` | `UpdateTraineeUseCase` |
-| Update trainer profile | `PUT /api/trainers` | `TrainerController` | `UpdateTrainerUseCase` |
-| Create training | `POST /api/trainings` | `TrainingController` | `CreateTrainingUseCase` |
-| Retrieve training types | `GET /api/trainings/types` | `TrainingController` | `GetTrainingTypesUseCase` |
+- Configured the `dev` Spring profile.
 
-![diagram](flow.png)
+---
 
-[Endpoint Documentation (Notion)](https://app.notion.com/p/GYM-CRM-39fd31beaafb80d9b498e501d444f3d7?source=copy_link)
+## 3. Added Swagger UI
+
+REST API documentation:/swagger-ui/index.html
+
+---
+
+## 4. Configured Actuator & Prometheus
+
+Spring Boot Actuator and Prometheus.
+
+### Configuration
+
+- `monitoring/prometheus.yml`
+
+---
+
+## 5. Custom Actuator Endpoints
+
+Implemented four custom Actuator endpoints:
+
+| Endpoint | Description |
+|----------|-------------|
+| `AppEndpoint` | Provides application information |
+| `SystemResourcesEndpoint` | Displays JVM and system resource information |
+| `UserStatsEndpoint` | Returns trainee and trainer statistics |
+| `TrainingStatsEndpoint` | Returns training statistics |
+
+---
+
+## 6. Custom Prometheus Metrics
+
+Implemented the following custom Prometheus metrics:
+
+| Metric | Description |
+|--------|-------------|
+| `gym_trainee_registrations_total` | Total number of trainee registrations |
+| `gym_trainer_registrations_total` | Total number of trainer registrations |
+| `gym_trainings_created_total` | Total number of trainings created |
+| `gym_auth_failures_total` | Total number of authentication failures |
+
+![diagram](prom.png)
