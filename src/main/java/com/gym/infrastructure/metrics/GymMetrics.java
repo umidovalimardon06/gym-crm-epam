@@ -14,7 +14,6 @@ public class GymMetrics {
     private final Counter trainerRegistrations;
     private final Counter trainingsCreated;
     private final Counter authFailures;
-    private final Timer authLatency;
 
     public GymMetrics(MeterRegistry registry) {
         this.traineeRegistrations = Counter.builder("gym_trainee_registrations_total")
@@ -33,14 +32,10 @@ public class GymMetrics {
                 .description("Total number of failed authentication attempts")
                 .register(registry);
 
-        this.authLatency = Timer.builder("gym_auth_latency_seconds")
-                .description("Time taken to authenticate a user")
-                .register(registry);
     }
 
     public void incrementTraineeRegistrations() { traineeRegistrations.increment(); }
     public void incrementTrainerRegistrations() { trainerRegistrations.increment(); }
     public void incrementTrainingsCreated() { trainingsCreated.increment(); }
     public void incrementAuthFailures() { authFailures.increment(); }
-    public Timer getAuthLatency() { return authLatency; }
 }

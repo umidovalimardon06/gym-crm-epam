@@ -31,17 +31,15 @@ public class AuthController {
 
     @GetMapping("/login")
     public ResponseEntity<Void> login(@Valid @RequestBody LoginRequest request) {
-        return gymMetrics.getAuthLatency().record(() -> {
-            try {
-                authenticateUseCase.authenticate(
-                        new AuthCredentials(request.username(), request.password())
-                );
-                return ResponseEntity.ok().<Void>build();
-            } catch (Exception e) {
-                gymMetrics.incrementAuthFailures();
-                throw e;
-            }
-        });
+        try {
+            authenticateUseCase.authenticate(
+                    new AuthCredentials(request.username(), request.password())
+            );
+            return ResponseEntity.ok().<Void>build();
+        } catch (Exception e) {
+            gymMetrics.incrementAuthFailures();
+            throw e;
+        }
     }
 
     @PutMapping("/password")
