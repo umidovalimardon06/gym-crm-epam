@@ -11,8 +11,15 @@ import com.gym.application.port.input.trainee.update.PopulateTraineeTrainersUser
 import com.gym.application.port.input.trainee.update.UpdateTraineeUseCase;
 import com.gym.domain.Trainee;
 import com.gym.domain.Training;
+import com.gym.infrastructure.metrics.GymMetrics;
 import com.gym.infrastructure.web.dto.trainee.*;
 import com.gym.infrastructure.web.dto.training.TrainingResponse;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,10 +31,9 @@ import java.util.List;
 
 @RestController
 @RequestMapping(value = "api/trainees", consumes = "application/json", produces = "application/json")
+@Tag(name = "Trainees", description = "Endpoints for managing trainee profiles, status, and training history")
 public class TraineeController {
-
     private static final Logger log = LoggerFactory.getLogger(TraineeController.class);
-
     private final CreateTraineeUseCase createTraineeUseCase;
     private final DeleteTraineeUseCase deleteTraineeUseCase;
     private final ChangeTraineeStatusUseCase changeTraineeStatusUseCase;
@@ -35,6 +41,7 @@ public class TraineeController {
     private final PopulateTraineeTrainersUserCase populateTraineeTrainersUseCase;
     private final RetrieveTraineeUseCase retrieveTraineeUseCase;
     private final UpdateTraineeUseCase updateTraineeUseCase;
+    private final GymMetrics gymMetrics;
 
     public TraineeController(CreateTraineeUseCase createTraineeUseCase,
                              DeleteTraineeUseCase deleteTraineeUseCase,
@@ -42,7 +49,8 @@ public class TraineeController {
                              RetrieveTraineeTrainingsUseCase retrieveTraineeTrainingsUseCase,
                              PopulateTraineeTrainersUserCase populateTraineeTrainersUseCase,
                              RetrieveTraineeUseCase retrieveTraineeUseCase,
-                             UpdateTraineeUseCase updateTraineeUseCase) {
+                             UpdateTraineeUseCase updateTraineeUseCase,
+                             GymMetrics gymMetrics) {
         this.createTraineeUseCase = createTraineeUseCase;
         this.deleteTraineeUseCase = deleteTraineeUseCase;
         this.changeTraineeStatusUseCase = changeTraineeStatusUseCase;
@@ -50,8 +58,17 @@ public class TraineeController {
         this.populateTraineeTrainersUseCase = populateTraineeTrainersUseCase;
         this.retrieveTraineeUseCase = retrieveTraineeUseCase;
         this.updateTraineeUseCase = updateTraineeUseCase;
+        this.gymMetrics = gymMetrics;
     }
 
+    @Operation(summary = "Register a new trainee",
+            description = "Creates a trainee profile. Username and password are system-generated. " +
+                    "No authentication required")
+    @ApiResponses({
+            @ApiResponse(responseCode = "201", description = "Trainee created",
+                    content = @Content(schema = @Schema(implementation = RegistrationResponse.class))),
+            @ApiResponse(responseCode = "400", description = "Missing or invalid required fields")
+    })
     @PostMapping
     public ResponseEntity<RegistrationResponse> register(
             @Valid @RequestBody TraineeRegistrationRequest request) {
@@ -73,9 +90,18 @@ public class TraineeController {
                 trainee.getPassword()
         );
 
+        gymMetrics.incrementTraineeRegistrations();
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
+    @Operation(summary = "Delete a trainee profile",
+            description = "Deletes the specified trainee. Requires authentication credentials of an existing user.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Trainee deleted"),
+            @ApiResponse(responseCode = "400", description = "Missing or invalid required fields"),
+            @ApiResponse(responseCode = "401", description = "Invalid username or password"),
+            @ApiResponse(responseCode = "404", description = "Trainee to delete not found")
+    })
     @DeleteMapping("/delete")
     public ResponseEntity<Void> deleteProfile(
             @Valid @RequestBody DeleteTraineeProfileRequest request) {
@@ -91,6 +117,14 @@ public class TraineeController {
         return ResponseEntity.ok().build();
     }
 
+    @Operation(summary = "Activate a trainee",
+            description = "Sets the trainee's status to active. Requires authentication credentials.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Trainee activated"),
+            @ApiResponse(responseCode = "400", description = "Missing or invalid required fields"),
+            @ApiResponse(responseCode = "401", description = "Invalid username or password"),
+            @ApiResponse(responseCode = "404", description = "Trainee not found")
+    })
     @PatchMapping("/activate")
     public ResponseEntity<Void> activate(
             @Valid @RequestBody ChangeTraineeStatusRequest request) {
@@ -105,6 +139,14 @@ public class TraineeController {
         return ResponseEntity.ok().build();
     }
 
+    @Operation(summary = "Deactivate a trainee",
+            description = "Sets the trainee's status to inactive. Requires authentication credentials.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Trainee deactivated"),
+            @ApiResponse(responseCode = "400", description = "Missing or invalid required fields"),
+            @ApiResponse(responseCode = "401", description = "Invalid username or password"),
+            @ApiResponse(responseCode = "404", description = "Trainee not found")
+    })
     @PatchMapping("/deactivate")
     public ResponseEntity<Void> deactivate(
             @Valid @RequestBody ChangeTraineeStatusRequest request) {
@@ -119,6 +161,13 @@ public class TraineeController {
         return ResponseEntity.ok().build();
     }
 
+    @Operation(summary = "Get a trainee's trainings",
+            description = "Retrieves the list of trainings associated with the given trainee username.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Trainings retrieved",
+                    content = @Content(schema = @Schema(implementation = TrainingResponse.class))),
+            @ApiResponse(responseCode = "404", description = "Trainee not found")
+    })
     @GetMapping("/{username}/trainings")
     public ResponseEntity<List<TrainingResponse>> getTrainings(
             @PathVariable("username") String username) {
@@ -149,6 +198,15 @@ public class TraineeController {
         return ResponseEntity.ok(trainingResponses);
     }
 
+    @Operation(summary = "Assign trainers to a trainee",
+            description = "Replaces the list of trainers assigned to the given trainee. Requires authentication credentials.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Trainers updated",
+                    content = @Content(schema = @Schema(implementation = PopulateTraineeTrainersResponse.class))),
+            @ApiResponse(responseCode = "400", description = "Missing or invalid required fields"),
+            @ApiResponse(responseCode = "401", description = "Invalid username or password"),
+            @ApiResponse(responseCode = "404", description = "Trainee or one or more trainers not found")
+    })
     @PutMapping("/trainers")
     public ResponseEntity<PopulateTraineeTrainersResponse> populateTrainers(
             @Valid @RequestBody PopulateTraineeTrainersRequest request) {
@@ -172,6 +230,15 @@ public class TraineeController {
         return ResponseEntity.ok(response);
     }
 
+    @Operation(summary = "Get a trainee's profile",
+            description = "Retrieves the profile details of the given trainee. Requires authentication credentials.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Profile retrieved",
+                    content = @Content(schema = @Schema(implementation = TraineeProfileResponse.class))),
+            @ApiResponse(responseCode = "400", description = "Missing or invalid required fields"),
+            @ApiResponse(responseCode = "401", description = "Invalid username or password"),
+            @ApiResponse(responseCode = "404", description = "Trainee not found")
+    })
     @PostMapping("/profile")
     public ResponseEntity<TraineeProfileResponse> getProfile(
             @Valid @RequestBody GetTraineeProfileRequest request) {
@@ -198,6 +265,15 @@ public class TraineeController {
         return ResponseEntity.ok(response);
     }
 
+    @Operation(summary = "Update a trainee's profile",
+            description = "Updates the profile fields of the given trainee. Requires authentication credentials.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Profile updated",
+                    content = @Content(schema = @Schema(implementation = UpdateTraineeProfileResponse.class))),
+            @ApiResponse(responseCode = "400", description = "Missing or invalid required fields"),
+            @ApiResponse(responseCode = "401", description = "Invalid username or password"),
+            @ApiResponse(responseCode = "404", description = "Trainee not found")
+    })
     @PutMapping
     public ResponseEntity<UpdateTraineeProfileResponse> updateProfile(
             @Valid @RequestBody UpdateTraineeProfileRequest request) {
