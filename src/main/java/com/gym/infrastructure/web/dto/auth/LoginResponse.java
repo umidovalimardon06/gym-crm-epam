@@ -1,3 +1,3 @@
 package com.gym.infrastructure.web.dto.auth;
-public class LoginResponse {
-}
+
+public record LoginResponse(String token) {}
