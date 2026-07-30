@@ -1,9 +1,6 @@
 package com.gym.infrastructure.web.exception;
 
-import com.gym.application.exception.AuthenticationException;
-import com.gym.application.exception.InvalidStateException;
-import com.gym.application.exception.NotFoundException;
-import com.gym.application.exception.TraineeDeletionException;
+import com.gym.application.exception.*;
 import com.gym.infrastructure.web.dto.error.ErrorResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
@@ -62,6 +59,11 @@ public class GlobalExceptionHandler {
         return build(HttpStatus.INTERNAL_SERVER_ERROR, "Internal server error", req);
     }
 
+    @ExceptionHandler(AccountLockedException.class)
+    public ResponseEntity<ErrorResponse> handleAccountLocked(AccountLockedException e,
+                                                             HttpServletRequest req) {
+        return build(HttpStatus.LOCKED, e.getMessage(), req);
+    }
 
     private ResponseEntity<ErrorResponse> build(HttpStatus status,
                                                 String message,
