@@ -8,6 +8,7 @@ import com.gym.application.service.UsernameGenerator;
 import com.gym.domain.Trainer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,13 +20,16 @@ public class CreateTrainerService implements CreateTrainerUseCase {
     private final TrainerRepository trainerRepository;
     private final UsernameGenerator usernameGenerator;
     private final PasswordGenerator passwordGenerator;
+    private final PasswordEncoder passwordEncoder;
 
     public CreateTrainerService(TrainerRepository trainerRepository,
                                 UsernameGenerator usernameGenerator,
-                                PasswordGenerator passwordGenerator) {
+                                PasswordGenerator passwordGenerator,
+                                PasswordEncoder passwordEncoder) {
         this.trainerRepository = trainerRepository;
         this.usernameGenerator = usernameGenerator;
         this.passwordGenerator = passwordGenerator;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
@@ -37,19 +41,20 @@ public class CreateTrainerService implements CreateTrainerUseCase {
         validate(command);
 
         String username = usernameGenerator.generate(command.firstName(), command.lastName());
-        String password = passwordGenerator.generatePassword();
+        String rawPassword = passwordGenerator.generatePassword();
 
         Trainer trainer = new Trainer(
                 null,
                 command.firstName(),
                 command.lastName(),
                 username,
-                password,
+                passwordEncoder.encode(rawPassword),
                 command.specialization()
         );
         trainer.setActive(true);
 
         Trainer saved = trainerRepository.save(trainer);
+        saved.setPassword(rawPassword);
         log.info("Trainer created: username={}", saved.getUsername());
         return saved;
     }
