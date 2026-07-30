@@ -1,11 +1,18 @@
 package com.gym.infrastructure.web.controller;
 
+import com.gym.application.exception.AccountLockedException;
+import com.gym.application.exception.AuthenticationException;
 import com.gym.application.port.input.auth.AuthCredentials;
 import com.gym.application.port.input.auth.AuthenticateUseCase;
 import com.gym.application.port.input.auth.ChangePasswordUseCase;
 import com.gym.infrastructure.metrics.GymMetrics;
+import com.gym.infrastructure.secuirty.GymUserDetailsService;
+import com.gym.infrastructure.secuirty.JwtService;
+import com.gym.infrastructure.secuirty.LoginAttemptService;
+import com.gym.infrastructure.secuirty.TokenBlacklistService;
 import com.gym.infrastructure.web.dto.auth.ChangePasswordRequest;
 import com.gym.infrastructure.web.dto.auth.LoginRequest;
+import com.gym.infrastructure.web.dto.auth.LoginResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -14,7 +21,9 @@ import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
+import jakarta.servlet.http.HttpServletRequest;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -24,35 +33,74 @@ public class AuthController {
     private final AuthenticateUseCase authenticateUseCase;
     private final ChangePasswordUseCase changePasswordUseCase;
     private final GymMetrics gymMetrics;
+    private final GymUserDetailsService userDetailsService;
+    private final JwtService jwtService;
+    private final LoginAttemptService loginAttemptService;
+    private final TokenBlacklistService tokenBlacklistService;
 
     public AuthController(
             AuthenticateUseCase authenticateUseCase,
             ChangePasswordUseCase changePasswordUseCase,
-            GymMetrics gymMetrics) {
+            GymMetrics gymMetrics,
+            GymUserDetailsService userDetailsService,
+            JwtService jwtService,
+            LoginAttemptService loginAttemptService,
+            TokenBlacklistService tokenBlacklistService) {
         this.authenticateUseCase = authenticateUseCase;
         this.changePasswordUseCase = changePasswordUseCase;
         this.gymMetrics = gymMetrics;
+        this.userDetailsService = userDetailsService;
+        this.jwtService = jwtService;
+        this.loginAttemptService = loginAttemptService;
+        this.tokenBlacklistService = tokenBlacklistService;
     }
 
     @Operation(summary = "Authenticate a user",
-            description = "Validates the provided username and password. " +
-                    "Returns 200 OK if credentials are valid.")
+            description = "Validates the provided username and password and returns a JWT " +
+                    "on success. Account is locked for 5 minutes after 3 failed attempts.")
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Authentication successful"),
+            @ApiResponse(responseCode = "200", description = "Authentication successful, token issued"),
             @ApiResponse(responseCode = "400", description = "Missing or invalid required fields"),
-            @ApiResponse(responseCode = "401", description = "Invalid username or password")
+            @ApiResponse(responseCode = "401", description = "Invalid username or password"),
+            @ApiResponse(responseCode = "423", description = "Account locked due to repeated failed logins")
     })
-    @GetMapping("/login")
-    public ResponseEntity<Void> login(@Valid @RequestBody LoginRequest request) {
+    @PostMapping("/login")
+    public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
+        String username = request.username();
+
+        if (loginAttemptService.isBlocked(username)) {
+            throw new AccountLockedException(
+                    "Account locked due to repeated failed login attempts. Try again later.");
+        }
+
         try {
-            authenticateUseCase.authenticate(
-                    new AuthCredentials(request.username(), request.password())
-            );
-            return ResponseEntity.ok().<Void>build();
-        } catch (Exception e) {
+            authenticateUseCase.authenticate(new AuthCredentials(username, request.password()));
+        } catch (AuthenticationException e) {
+            loginAttemptService.loginFailed(username);
             gymMetrics.incrementAuthFailures();
             throw e;
         }
+
+        loginAttemptService.loginSucceeded(username);
+        UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+        String token = jwtService.generateToken(userDetails);
+        return ResponseEntity.ok(new LoginResponse(token));
+    }
+
+    @Operation(summary = "Log out the current user",
+            description = "Invalidates the JWT used for this request. Requires authentication.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Logged out successfully"),
+            @ApiResponse(responseCode = "401", description = "Missing or invalid token")
+    })
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout(HttpServletRequest request) {
+        String authHeader = request.getHeader("Authorization");
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            String token = authHeader.substring(7);
+            tokenBlacklistService.blacklist(token);
+        }
+        return ResponseEntity.ok().build();
     }
 
     @Operation(summary = "Change user password",
