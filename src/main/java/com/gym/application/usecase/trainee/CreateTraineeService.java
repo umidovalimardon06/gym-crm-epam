@@ -9,6 +9,7 @@ import com.gym.application.service.UsernameGenerator;
 import com.gym.domain.Trainee;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,13 +21,16 @@ public class CreateTraineeService implements CreateTraineeUseCase {
     private final TraineeRepository traineeRepository;
     private final UsernameGenerator usernameGenerator;
     private final PasswordGenerator passwordGenerator;
+    private final PasswordEncoder passwordEncoder;
 
     public CreateTraineeService(TraineeRepository traineeRepository,
                                 UsernameGenerator usernameGenerator,
-                                PasswordGenerator passwordGenerator) {
+                                PasswordGenerator passwordGenerator,
+                                PasswordEncoder passwordEncoder) {
         this.traineeRepository = traineeRepository;
         this.usernameGenerator = usernameGenerator;
         this.passwordGenerator = passwordGenerator;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
@@ -38,20 +42,21 @@ public class CreateTraineeService implements CreateTraineeUseCase {
         validate(command);
 
         String username = usernameGenerator.generate(command.firstName(), command.lastName());
-        String password = passwordGenerator.generatePassword();
+        String rawPassword = passwordGenerator.generatePassword();
 
         Trainee trainee = new Trainee(
                 null,
                 command.firstName(),
                 command.lastName(),
                 username,
-                password,
+                passwordEncoder.encode(rawPassword),
                 command.dateOfBirth(),
                 command.address()
         );
         trainee.setActive(true);
 
         Trainee saved = traineeRepository.save(trainee);
+        saved.setPassword(rawPassword);
         log.info("Trainee created: username={}", saved.getUsername());
         return saved;
     }

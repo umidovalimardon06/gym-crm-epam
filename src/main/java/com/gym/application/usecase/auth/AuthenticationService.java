@@ -8,6 +8,7 @@ import com.gym.application.port.output.TrainerRepository;
 import com.gym.domain.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 @Service
 public class AuthenticationService implements AuthenticateUseCase {
@@ -16,11 +17,14 @@ public class AuthenticationService implements AuthenticateUseCase {
 
     private final TraineeRepository traineeRepository;
     private final TrainerRepository trainerRepository;
+    private final PasswordEncoder passwordEncoder;
 
     public AuthenticationService(TraineeRepository traineeRepository,
-                                 TrainerRepository trainerRepository) {
+                                 TrainerRepository trainerRepository,
+                                 PasswordEncoder passwordEncoder) {
         this.traineeRepository = traineeRepository;
         this.trainerRepository = trainerRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
@@ -52,7 +56,7 @@ public class AuthenticationService implements AuthenticateUseCase {
                     return new AuthenticationException("Invalid credentials");
                 });
 
-        if (!user.getPassword().equals(c.password())) {
+        if (!passwordEncoder.matches(c.password(), user.getPassword())) {
             log.warn("Authentication failed: password mismatch, username={}", c.username());
             throw new AuthenticationException("Invalid credentials");
         }

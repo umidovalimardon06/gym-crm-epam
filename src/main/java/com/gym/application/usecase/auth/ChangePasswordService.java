@@ -8,6 +8,7 @@ import com.gym.application.port.output.UserRepository;
 import com.gym.domain.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,11 +19,14 @@ public class ChangePasswordService implements ChangePasswordUseCase {
 
     private final AuthenticateUseCase authenticator;
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     public ChangePasswordService(AuthenticateUseCase authenticator,
-                                 UserRepository userRepository) {
+                                 UserRepository userRepository,
+                                 PasswordEncoder passwordEncoder) {
         this.authenticator = authenticator;
         this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
@@ -43,7 +47,7 @@ public class ChangePasswordService implements ChangePasswordUseCase {
                     return new NotFoundException("User not found: " + username);
                 });
 
-        user.setPassword(newPassword);
+        user.setPassword(passwordEncoder.encode(newPassword));
         userRepository.save(user);
         log.info("Password changed successfully for username={}", username);
     }
