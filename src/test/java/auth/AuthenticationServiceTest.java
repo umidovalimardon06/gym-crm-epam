@@ -12,7 +12,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.Optional;
 
@@ -29,17 +32,19 @@ class AuthenticationServiceTest {
     AuthenticationService service;
     Trainee testTrainee;
     Trainer testTrainer;
+    @Spy
+    PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     @BeforeEach
     void setUp() {
         testTrainee = new Trainee();
         testTrainee.setUsername("Ali.Vip");
-        testTrainee.setPassword("123");
+        testTrainee.setPassword(passwordEncoder.encode("123"));
         testTrainee.setActive(true);
 
         testTrainer = new Trainer();
         testTrainer.setUsername("Ilkhom.Vip");
-        testTrainer.setPassword("456");
+        testTrainer.setPassword(passwordEncoder.encode("456"));
         testTrainer.setActive(true);
     }
 
