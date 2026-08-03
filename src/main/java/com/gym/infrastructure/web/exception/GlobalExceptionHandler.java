@@ -1,6 +1,10 @@
 package com.gym.infrastructure.web.exception;
 
-import com.gym.application.exception.*;
+import com.gym.application.exception.AuthenticationException;
+import com.gym.application.exception.InvalidStateException;
+import com.gym.application.exception.NotFoundException;
+import com.gym.application.exception.TraineeDeletionException;
+import com.gym.application.exception.AccountLockedException;
 import com.gym.infrastructure.web.dto.error.ErrorResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
