@@ -17,19 +17,22 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
-import jakarta.servlet.http.HttpServletRequest;
 
 @RestController
 @RequestMapping("/api/auth")
 @Tag(name = "Auth", description = "Endpoints for authentication and credential management")
 public class AuthController {
     private static final Logger log = LoggerFactory.getLogger(AuthController.class);
+    private static final String BEARER_PREFIX = "Bearer ";
+    private static final int BEARER_PREFIX_LENGTH = BEARER_PREFIX.length();
+
     private final AuthenticateUseCase authenticateUseCase;
     private final ChangePasswordUseCase changePasswordUseCase;
     private final GymMetrics gymMetrics;
@@ -69,6 +72,7 @@ public class AuthController {
         String username = request.username();
 
         if (loginAttemptService.isBlocked(username)) {
+            log.warn("Login attempt blocked for locked account: {}", username);
             throw new AccountLockedException(
                     "Account locked due to repeated failed login attempts. Try again later.");
         }
@@ -76,12 +80,14 @@ public class AuthController {
         try {
             authenticateUseCase.authenticate(new AuthCredentials(username, request.password()));
         } catch (AuthenticationException e) {
+            log.warn("Authentication failed for username: {}. Reason: {}", username, e.getMessage());
             loginAttemptService.loginFailed(username);
             gymMetrics.incrementAuthFailures();
             throw e;
         }
 
         loginAttemptService.loginSucceeded(username);
+        log.info("User logged in successfully: {}", username);
         UserDetails userDetails = userDetailsService.loadUserByUsername(username);
         String token = jwtService.generateToken(userDetails);
         return ResponseEntity.ok(new LoginResponse(token));
@@ -96,9 +102,10 @@ public class AuthController {
     @PostMapping("/logout")
     public ResponseEntity<Void> logout(HttpServletRequest request) {
         String authHeader = request.getHeader("Authorization");
-        if (authHeader != null && authHeader.startsWith("Bearer ")) {
-            String token = authHeader.substring(7);
+        if (authHeader != null && authHeader.startsWith(BEARER_PREFIX)) {
+            String token = authHeader.substring(BEARER_PREFIX_LENGTH);
             tokenBlacklistService.blacklist(token);
+            log.info("Token successfully blacklisted for logout");
         }
         return ResponseEntity.ok().build();
     }
