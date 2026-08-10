@@ -12,7 +12,7 @@ import com.gym.domain.Trainee;
 import com.gym.domain.Trainer;
 import com.gym.domain.Training;
 import com.gym.infrastructure.workload.ActionType;
-import com.gym.infrastructure.workload.WorkloadClient;
+import com.gym.infrastructure.workload.WorkloadNotifier;
 import com.gym.infrastructure.workload.WorkloadRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,18 +30,17 @@ public class DeleteTraineeService implements DeleteTraineeUseCase {
     private final TraineeRepository traineeRepository;
     private final TrainingRepository trainingRepository;
     private final TrainerRepository trainerRepository;
-    private final WorkloadClient workloadClient;
-
+    private final WorkloadNotifier workloadNotifier;
     public DeleteTraineeService(AuthenticateUseCase authenticator,
                                 TraineeRepository traineeRepository,
                                 TrainingRepository trainingRepository,
                                 TrainerRepository trainerRepository,
-                                WorkloadClient workloadClient) {
+                                WorkloadNotifier workloadNotifier) {
         this.authenticator = authenticator;
         this.traineeRepository = traineeRepository;
         this.trainingRepository = trainingRepository;
         this.trainerRepository = trainerRepository;
-        this.workloadClient = workloadClient;
+        this.workloadNotifier = workloadNotifier;
     }
 
     @Override
@@ -68,7 +67,7 @@ public class DeleteTraineeService implements DeleteTraineeUseCase {
     }
 
     private void notifyWorkload(Training training) {
-        Trainer trainer = trainerRepository.findById(training.getTrainerId()).orElse(null);
+        Trainer trainer = trainerRepository.findByUserId(training.getTrainerId()).orElse(null);
         if (trainer == null) {
             log.warn("Skipping workload notification: trainer not found, trainerId={}", training.getTrainerId());
             return;
@@ -84,7 +83,7 @@ public class DeleteTraineeService implements DeleteTraineeUseCase {
                 ActionType.DELETE
         );
 
-        workloadClient.sendWorkload(request);
+        workloadNotifier.notify(request);
     }
 
     private Trainee getTraineeFromDatabaseOrThrowExcerption(String username) {

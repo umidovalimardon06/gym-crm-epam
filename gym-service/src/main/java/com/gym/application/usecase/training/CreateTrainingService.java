@@ -8,6 +8,7 @@ import com.gym.domain.Trainer;
 import com.gym.domain.Training;
 import com.gym.infrastructure.workload.ActionType;
 import com.gym.infrastructure.workload.WorkloadClient;
+import com.gym.infrastructure.workload.WorkloadNotifier;
 import com.gym.infrastructure.workload.WorkloadRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,18 +22,18 @@ public class CreateTrainingService implements CreateTrainingUseCase {
     private static final Logger log = LoggerFactory.getLogger(CreateTrainingService.class);
     private final TrainingRepository trainingRepository;
     private final TrainerRepository trainerRepository;
-    private final WorkloadClient workloadClient;
+    private final WorkloadNotifier workloadNotifier;
 
     public CreateTrainingService(TrainingRepository trainingRepository,
                                  TrainerRepository trainerRepository,
-                                 WorkloadClient workloadClient) {
+                                 WorkloadNotifier workloadNotifier) {
         this.trainingRepository = trainingRepository;
         this.trainerRepository = trainerRepository;
-        this.workloadClient = workloadClient;
+        this.workloadNotifier = workloadNotifier;
     }
 
     @Override
-    @Transactional  
+    @Transactional
     public Training addTraining(Training training) {
         logAddTrainingRequest(training);
         validate(training);
@@ -40,9 +41,7 @@ public class CreateTrainingService implements CreateTrainingUseCase {
         Training savedTraining = trainingRepository.save(training);
         logTrainingAdded(savedTraining);
 
-        System.out.println("----HIT---");
-
-        notifyWorkload(savedTraining);
+        notifyWorkload(training);
         return savedTraining;
     }
 
@@ -50,11 +49,11 @@ public class CreateTrainingService implements CreateTrainingUseCase {
         Trainer trainer = getTrainerOrElsoReturnNull(training);
         if (trainer == null) return;
         WorkloadRequest request = createWorkloadRequest(training, trainer);
-        workloadClient.sendWorkload(request);
+        workloadNotifier.notify(request);
     }
 
     private Trainer getTrainerOrElsoReturnNull(Training training) {
-        Trainer trainer = trainerRepository.findById(training.getId()).orElse(null);
+        Trainer trainer = trainerRepository.findByUserId(training.getTrainerId()).orElse(null);
         if (trainer == null) {
             log.warn("Skipping workload notification: trainer not found, trainerId={}", training.getTrainerId());
             return null;
