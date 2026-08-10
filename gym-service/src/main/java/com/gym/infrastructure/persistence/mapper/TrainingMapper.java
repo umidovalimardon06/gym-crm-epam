@@ -15,8 +15,8 @@ public class TrainingMapper {
         if (e == null) return null;
         return new Training(
                 e.getId(),
-                e.getTrainee().getId(),
-                e.getTrainer().getId(),
+                e.getTrainee().getUser().getId(),
+                e.getTrainer().getUser().getId(),
                 e.getTrainingName(),
                 e.getTrainingType(),
                 e.getTrainingDate(),

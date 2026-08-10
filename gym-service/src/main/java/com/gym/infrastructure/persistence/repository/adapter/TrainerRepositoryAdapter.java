@@ -77,4 +77,9 @@ public class TrainerRepositoryAdapter implements TrainerRepository {
     public boolean existsByUsername(String username) {
         return jpa.existsByUser_Username(username);
     }
+
+    @Override
+    public Optional<Trainer> findByUserId(Long userId) {
+        return jpa.findByUser_Id(userId).map(mapper::toDomain);
+    }
 }

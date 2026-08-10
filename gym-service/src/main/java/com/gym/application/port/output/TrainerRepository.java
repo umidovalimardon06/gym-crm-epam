@@ -19,4 +19,5 @@ public interface TrainerRepository {
     List<Trainer> findTrainersNotAssignedToTrainee(String traineeUsername);
 
     boolean existsByUsername(String username);
+    Optional<Trainer> findByUserId(Long userId);
 }

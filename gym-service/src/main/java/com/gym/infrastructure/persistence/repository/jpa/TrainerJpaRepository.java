@@ -1,5 +1,6 @@
 package com.gym.infrastructure.persistence.repository.jpa;
 
+import com.gym.domain.Trainer;
 import com.gym.infrastructure.persistence.entity.TrainerEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
