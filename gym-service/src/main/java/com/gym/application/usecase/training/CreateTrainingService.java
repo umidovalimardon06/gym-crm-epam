@@ -2,8 +2,13 @@ package com.gym.application.usecase.training;
 
 import com.gym.application.exception.TrainingCreationException;
 import com.gym.application.port.input.training.create.CreateTrainingUseCase;
+import com.gym.application.port.output.TrainerRepository;
 import com.gym.application.port.output.TrainingRepository;
+import com.gym.domain.Trainer;
 import com.gym.domain.Training;
+import com.gym.infrastructure.workload.ActionType;
+import com.gym.infrastructure.workload.WorkloadClient;
+import com.gym.infrastructure.workload.WorkloadRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -13,27 +18,60 @@ import java.time.LocalDate;
 
 @Service
 public class CreateTrainingService implements CreateTrainingUseCase {
-
     private static final Logger log = LoggerFactory.getLogger(CreateTrainingService.class);
-
     private final TrainingRepository trainingRepository;
+    private final TrainerRepository trainerRepository;
+    private final WorkloadClient workloadClient;
 
-    public CreateTrainingService(TrainingRepository trainingRepository) {
+    public CreateTrainingService(TrainingRepository trainingRepository,
+                                 TrainerRepository trainerRepository,
+                                 WorkloadClient workloadClient) {
         this.trainingRepository = trainingRepository;
+        this.trainerRepository = trainerRepository;
+        this.workloadClient = workloadClient;
     }
 
     @Override
-    @Transactional
+    @Transactional  
     public Training addTraining(Training training) {
-        log.debug("Add training requested: traineeId={}, trainerId={}",
-                training != null ? training.getTraineeId() : null,
-                training != null ? training.getTrainerId() : null);
+        logAddTrainingRequest(training);
         validate(training);
 
-        Training saved = trainingRepository.save(training);
-        log.info("Training added: id={}, traineeId={}, trainerId={}, date={}",
-                saved.getId(), saved.getTraineeId(), saved.getTrainerId(), saved.getTrainingDate());
-        return saved;
+        Training savedTraining = trainingRepository.save(training);
+        logTrainingAdded(savedTraining);
+
+        System.out.println("----HIT---");
+
+        notifyWorkload(savedTraining);
+        return savedTraining;
+    }
+
+    private void notifyWorkload(Training training) {
+        Trainer trainer = getTrainerOrElsoReturnNull(training);
+        if (trainer == null) return;
+        WorkloadRequest request = createWorkloadRequest(training, trainer);
+        workloadClient.sendWorkload(request);
+    }
+
+    private Trainer getTrainerOrElsoReturnNull(Training training) {
+        Trainer trainer = trainerRepository.findById(training.getId()).orElse(null);
+        if (trainer == null) {
+            log.warn("Skipping workload notification: trainer not found, trainerId={}", training.getTrainerId());
+            return null;
+        }
+        return trainer;
+    }
+
+    private static WorkloadRequest createWorkloadRequest(Training training, Trainer trainer) {
+        return new WorkloadRequest(
+                trainer.getUsername(),
+                trainer.getFirstName(),
+                trainer.getLastName(),
+                trainer.isActive(),
+                training.getTrainingDate(),
+                (int) training.getTrainingDuration().toMinutes(),
+                ActionType.ADD
+        );
     }
 
     private void validate(Training t) {
@@ -56,4 +94,16 @@ public class CreateTrainingService implements CreateTrainingUseCase {
                 || t.getTrainingDuration().isNegative())
             throw new TrainingCreationException("trainingDuration must be positive");
     }
+
+    private static void logTrainingAdded(Training savedTraining) {
+        log.info("Training added: id={}, traineeId={}, trainerId={}, date={}",
+                savedTraining.getId(), savedTraining.getTraineeId(), savedTraining.getTrainerId(), savedTraining.getTrainingDate());
+    }
+
+    private static void logAddTrainingRequest(Training training) {
+        log.debug("Add training requested: traineeId={}, trainerId={}",
+                training != null ? training.getTraineeId() : null,
+                training != null ? training.getTrainerId() : null);
+    }
+
 }
