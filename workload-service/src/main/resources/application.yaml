@@ -17,4 +17,4 @@ app:
 
 logging:
   pattern:
-    console: %d{yyyy-MM-dd HH:mm:ss} [%thread] [txId=%X{transactionId}] %-5level %logger{36} - %msg%n
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] [txId=%X{transactionId}] %-5level %logger{36} - %msg%n"
