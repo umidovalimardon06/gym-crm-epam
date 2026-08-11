@@ -13,7 +13,7 @@ eureka:
 
 app:
   jwt:
-    secret: SkY4N1pQbXQ5V2xKcXJmNGhBNzJkR2VYbTNXcUxvTnA4RkJjVnJ6YQ==
+    secret: ${JWT_SECRET}
 
 logging:
   pattern:
