@@ -14,3 +14,7 @@ eureka:
 app:
   jwt:
     secret: SkY4N1pQbXQ5V2xKcXJmNGhBNzJkR2VYbTNXcUxvTnA4RkJjVnJ6YQ==
+
+logging:
+  pattern:
+    console: %d{yyyy-MM-dd HH:mm:ss} [%thread] [txId=%X{transactionId}] %-5level %logger{36} - %msg%n
