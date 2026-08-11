@@ -41,6 +41,19 @@ public class JwtService {
                 .compact();
     }
 
+    public String generateServiceToken(String serviceName) {
+        Date now = new Date();
+        Date expiry = new Date(now.getTime() + expirationMs);
+
+        return Jwts.builder()
+                .subject(serviceName)
+                .claim("role", "ROLE_SERVICE")
+                .issuedAt(now)
+                .expiration(expiry)
+                .signWith(signingKey)
+                .compact();
+    }
+
     public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);
     }
