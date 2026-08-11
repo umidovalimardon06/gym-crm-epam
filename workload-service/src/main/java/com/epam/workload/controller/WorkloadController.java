@@ -19,7 +19,6 @@ public class WorkloadController {
 
     @PostMapping
     public ResponseEntity<Void> handleWorkload(@Valid @RequestBody WorkloadRequest request) {
-        System.out.println("--- WORKLOAD HIT ---");
         System.out.println(request);
         workloadService.applyWorkload(request);
         return ResponseEntity.ok().build();
