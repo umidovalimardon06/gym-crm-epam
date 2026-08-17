@@ -5,10 +5,12 @@ import com.epam.workload.dto.WorkloadRequest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.jms.annotation.EnableJms;
 import org.springframework.jms.support.converter.MessageType;
 import org.springframework.jms.support.converter.MessageConverter;
 import org.springframework.jms.support.converter.MappingJackson2MessageConverter;
 
+@EnableJms
 @Configuration
 public class JmsConfig {
     @Bean
