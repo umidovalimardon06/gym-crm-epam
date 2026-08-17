@@ -1,7 +1,7 @@
 package com.epam.workload.config;
 
 import java.util.Map;
-import com.epam.workload.dto.WorkloadMessage;
+import com.epam.workload.dto.WorkloadRequest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -16,7 +16,7 @@ public class JmsConfig {
         MappingJackson2MessageConverter converter = new MappingJackson2MessageConverter();
         converter.setTargetType(MessageType.TEXT);
         converter.setTypeIdPropertyName("_type");
-        converter.setTypeIdMappings(Map.of("workloadRequest", WorkloadMessage.class));
+        converter.setTypeIdMappings(Map.of("workloadRequest", WorkloadRequest.class));
         converter.setObjectMapper(objectMapper);
         return converter;
     }
