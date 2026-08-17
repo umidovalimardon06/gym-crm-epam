@@ -4,8 +4,11 @@ import com.gym.application.exception.TraineeDeletionException;
 import com.gym.application.port.input.auth.AuthCredentials;
 import com.gym.application.port.input.auth.AuthenticateUseCase;
 import com.gym.application.port.output.TraineeRepository;
+import com.gym.application.port.output.TrainerRepository;
+import com.gym.application.port.output.TrainingRepository;
 import com.gym.application.usecase.trainee.DeleteTraineeService;
 import com.gym.domain.Trainee;
+import com.gym.infrastructure.workload.WorkloadNotifier;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -24,6 +27,9 @@ import static org.mockito.Mockito.when;
 class DeleteTraineeServiceTest {
     @Mock AuthenticateUseCase authenticator;
     @Mock TraineeRepository traineeRepository;
+    @Mock TrainingRepository trainingRepository;
+    @Mock TrainerRepository trainerRepository;
+    @Mock WorkloadNotifier workloadNotifier;
     @InjectMocks
     DeleteTraineeService service;
 

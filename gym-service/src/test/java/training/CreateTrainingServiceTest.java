@@ -1,10 +1,12 @@
 package training;
 
 import com.gym.application.exception.TrainingCreationException;
+import com.gym.application.port.output.TrainerRepository;
 import com.gym.application.port.output.TrainingRepository;
 import com.gym.application.usecase.training.CreateTrainingService;
 import com.gym.domain.Training;
 import com.gym.domain.TrainingType;
+import com.gym.infrastructure.workload.WorkloadNotifier;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -26,6 +28,8 @@ import static org.mockito.Mockito.when;
 class CreateTrainingServiceTest {
 
     @Mock TrainingRepository trainingRepository;
+    @Mock TrainerRepository trainerRepository;
+    @Mock WorkloadNotifier workloadNotifier;
 
     @InjectMocks
     CreateTrainingService service;

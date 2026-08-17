@@ -1,4 +1,4 @@
-package com.gym.infrastructure.workload;
+package com.gym.infrastructure.config;
 
 import com.gym.infrastructure.secuirty.JwtService;
 import feign.RequestInterceptor;
