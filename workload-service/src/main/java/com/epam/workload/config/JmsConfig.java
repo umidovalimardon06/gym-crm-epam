@@ -3,12 +3,14 @@ package com.epam.workload.config;
 import java.util.Map;
 import com.epam.workload.dto.WorkloadRequest;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.jms.ConnectionFactory;
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.activemq.RedeliveryPolicy;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.jms.annotation.EnableJms;
+import org.springframework.jms.config.DefaultJmsListenerContainerFactory;
 import org.springframework.jms.support.converter.MessageType;
 import org.springframework.jms.support.converter.MessageConverter;
 import org.springframework.jms.support.converter.MappingJackson2MessageConverter;
@@ -41,5 +43,12 @@ public class JmsConfig {
         converter.setTypeIdMappings(Map.of("workloadRequest", WorkloadRequest.class));
         converter.setObjectMapper(objectMapper);
         return converter;
+    }
+
+    @Bean
+    public DefaultJmsListenerContainerFactory dlqJmsListenerContainerFactory(ConnectionFactory connectionFactory) {
+        DefaultJmsListenerContainerFactory factory = new DefaultJmsListenerContainerFactory();
+        factory.setConnectionFactory(connectionFactory);
+        return factory;
     }
 }
