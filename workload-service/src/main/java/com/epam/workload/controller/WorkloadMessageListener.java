@@ -20,8 +20,30 @@ public class WorkloadMessageListener {
 
     @JmsListener(destination = "workload.queue")
     public void onWorkloadMessage(WorkloadRequest request) {
-        log.info("Received workload message: trainer={}, action={}", request.username(), request.actionType());
+        log.info("Received workload message: trainer={}, action={}",
+                request != null ? request.username() : null,
+                request != null ? request.actionType() : null);
+
+        validate(request);
+
         workloadService.applyWorkload(request);
         log.info("Workload message processed successfully: trainer={}", request.username());
+    }
+
+    private void validate(WorkloadRequest request) {
+        if (request == null)
+            throw new IllegalArgumentException("Workload message is null");
+        if (request.username() == null || request.username().isBlank())
+            throw new IllegalArgumentException("username is required");
+        if (request.firstName() == null || request.firstName().isBlank())
+            throw new IllegalArgumentException("firstName is required");
+        if (request.lastName() == null || request.lastName().isBlank())
+            throw new IllegalArgumentException("lastName is required");
+        if (request.trainingDate() == null)
+            throw new IllegalArgumentException("trainingDate is required");
+        if (request.trainingDuration() <= 0)
+            throw new IllegalArgumentException("trainingDuration must be positive");
+        if (request.actionType() == null)
+            throw new IllegalArgumentException("actionType is required");
     }
 }
