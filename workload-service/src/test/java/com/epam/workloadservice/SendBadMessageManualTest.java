@@ -1,4 +1,4 @@
-package com.epam.workload.controller;
+package com.epam.workloadservice;
 
 import com.epam.workload.domain.ActionType;
 import com.epam.workload.dto.WorkloadRequest;
