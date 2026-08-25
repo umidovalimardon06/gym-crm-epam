@@ -7,7 +7,6 @@ import com.gym.application.port.output.TrainingRepository;
 import com.gym.domain.Trainer;
 import com.gym.domain.Training;
 import com.gym.infrastructure.workload.ActionType;
-import com.gym.infrastructure.workload.WorkloadClient;
 import com.gym.infrastructure.workload.WorkloadNotifier;
 import com.gym.infrastructure.workload.WorkloadRequest;
 import org.slf4j.Logger;

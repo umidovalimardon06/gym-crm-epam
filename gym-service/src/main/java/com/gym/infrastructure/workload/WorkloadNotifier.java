@@ -1,27 +1,30 @@
 package com.gym.infrastructure.workload;
 
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.jms.core.JmsTemplate;
 import org.springframework.stereotype.Component;
 
 @Component
 public class WorkloadNotifier {
-    private final WorkloadClient workloadClient;
     private static final Logger log = LoggerFactory.getLogger(WorkloadNotifier.class);
+    public final String queueName;
+    private final JmsTemplate jmsTemplate;
 
-    public WorkloadNotifier(WorkloadClient workloadClient) {
-        this.workloadClient = workloadClient;
+    public WorkloadNotifier(JmsTemplate jmsTemplate,
+                            @Value("${workload.queue.name}") String queueName) {
+        this.jmsTemplate = jmsTemplate;
+        this.queueName = queueName;
     }
 
-    @CircuitBreaker(name = "workloadService", fallbackMethod = "fallback")
     public void notify(WorkloadRequest request) {
-        workloadClient.sendWorkload(request);
-    }
-
-    public void fallback(WorkloadRequest request, Throwable t) {
-        log.warn("Workload service unavailable, skipping notification for trainer={}, action={}: {}",
-                request.username(), request.actionType(), t.getMessage());
+        try {
+            jmsTemplate.convertAndSend(queueName, request);
+            log.info("Workload message sent: trainer={}, action={}", request.username(), request.actionType());
+        } catch (Exception e) {
+            log.warn("Failed to send workload message for trainer={}, action={}: {}",
+                    request.username(), request.actionType(), e.getMessage());
+        }
     }
 }

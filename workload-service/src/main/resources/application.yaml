@@ -1,6 +1,14 @@
 spring:
   application:
     name: workload-service
+  activemq:
+    broker-url: tcp://localhost:61616
+    user: admin
+    password: admin
+  jms:
+    listener:
+      session:
+        transacted: true
 
 server:
   port: 8081
@@ -18,3 +26,8 @@ app:
 logging:
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] [txId=%X{transactionId}] %-5level %logger{36} - %msg%n"
+
+workload:
+  queue:
+    name: workload.queue
+    dlq-name: workload.dlq
