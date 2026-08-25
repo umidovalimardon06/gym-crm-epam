@@ -9,6 +9,9 @@ spring:
     listener:
       session:
         transacted: true
+  data:
+    mongodb:
+      uri: mongodb://localhost:27017/trainer_workload
 
 server:
   port: 8081
