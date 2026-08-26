@@ -13,6 +13,7 @@ public record WorkloadRequest(
         @NotBlank String lastName,
         boolean isActive,
         @NotNull LocalDate trainingDate,
-        @Positive int trainingDuration,
+        @NotNull @Positive Integer trainingDuration,
         @NotNull ActionType actionType
-) {}
+) {
+}
