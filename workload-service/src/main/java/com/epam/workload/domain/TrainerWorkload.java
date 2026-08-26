@@ -1,12 +1,17 @@
 package com.epam.workload.domain;
 
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.CompoundIndex;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 import java.util.ArrayList;
 import java.util.List;
 
 @Document(collection = "trainer_workload")
+@CompoundIndex(
+        name = "trainer_name_idx",
+        def = "{'firstname': 1, 'lastname': 1}"
+)
 public class TrainerWorkload {
     @Id
     private String id;
