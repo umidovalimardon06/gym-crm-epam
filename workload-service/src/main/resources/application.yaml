@@ -11,7 +11,7 @@ spring:
         transacted: true
   data:
     mongodb:
-      uri: mongodb://localhost:27017/trainer_workload
+      uri: ${MONGODB_URI}
 
 server:
   port: 8081
