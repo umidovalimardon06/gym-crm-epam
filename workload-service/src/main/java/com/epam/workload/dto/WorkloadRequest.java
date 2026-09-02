@@ -8,11 +8,19 @@ import jakarta.validation.constraints.Positive;
 import java.time.LocalDate;
 
 public record WorkloadRequest(
-        @NotBlank String username,
-        @NotBlank String firstName,
-        @NotBlank String lastName,
+        @NotBlank
+        String username,
+        @NotBlank
+        String firstName,
+        @NotBlank
+        String lastName,
         boolean isActive,
-        @NotNull LocalDate trainingDate,
-        @Positive int trainingDuration,
-        @NotNull ActionType actionType
-) {}
+        @NotNull
+        LocalDate trainingDate,
+        @NotNull
+        @Positive
+        Integer trainingDuration,
+        @NotNull
+        ActionType actionType
+) {
+}

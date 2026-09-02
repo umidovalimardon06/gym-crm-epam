@@ -1,14 +1,26 @@
 package com.epam.workload.domain;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.CompoundIndex;
+import org.springframework.data.mongodb.core.index.Indexed;
+import org.springframework.data.mongodb.core.mapping.Document;
+import java.util.ArrayList;
+import java.util.List;
 
+@Document(collection = "trainer_workload")
+@CompoundIndex(
+        name = "trainer_name_idx",
+        def = "{'firstname': 1, 'lastname': 1}"
+)
 public class TrainerWorkload {
+    @Id
+    private String id;
+    @Indexed(unique = true)
     private String username;
     private String firstname;
     private String lastname;
     private boolean active;
-    private final Map<Integer, Map<Integer,Integer>> years = new ConcurrentHashMap<>();
+    private List<YearSummary> years = new ArrayList<>();
 
     public TrainerWorkload() {
     }
@@ -21,17 +33,41 @@ public class TrainerWorkload {
     }
 
     public void addDuration(int year, int month, int minutes) {
-        years.computeIfAbsent(year, y -> new ConcurrentHashMap<>())
-                .merge(month, minutes, Integer::sum);
+        YearSummary yearSummary = years.stream()
+                .filter(y -> y.getYear() == year)
+                .findFirst()
+                .orElseGet(() -> {
+                    YearSummary newYear = new YearSummary(year);
+                    years.add(newYear);
+                    return newYear;
+                });
+
+        MonthSummary monthSummary = yearSummary.getMonths().stream()
+                .filter(m -> m.getMonth() == month)
+                .findFirst()
+                .orElseGet(() -> {
+                    MonthSummary newMonth = new MonthSummary(month, 0);
+                    yearSummary.getMonths().add(newMonth);
+                    return newMonth;
+                });
+
+        monthSummary.setTrainingSummaryDuration(
+                monthSummary.getTrainingSummaryDuration() + minutes
+        );
     }
 
     public void subtractDuration(int year, int month, int minutes) {
-        years.computeIfAbsent(year, y -> new ConcurrentHashMap<>())
-                .merge(month, -minutes, Integer::sum);
+        addDuration(year, month, -minutes);
     }
 
     public int getDuration(int year, int month) {
-        return years.getOrDefault(year, Map.of()).getOrDefault(month, 0);
+        return years.stream()
+                .filter(y -> y.getYear() == year)
+                .flatMap(y -> y.getMonths().stream())
+                .filter(m -> m.getMonth() == month)
+                .mapToInt(MonthSummary::getTrainingSummaryDuration)
+                .findFirst()
+                .orElse(0);
     }
 
     public String getUsername() { return username; }
@@ -42,5 +78,6 @@ public class TrainerWorkload {
     public void setLastName(String lastName) { this.lastname = lastName; }
     public boolean isActive() { return active; }
     public void setActive(boolean active) { this.active = active; }
-    public Map<Integer, Map<Integer, Integer>> getYears() { return years; }
+    public List<YearSummary> getYears() {return years;}
+    public void setYears(List<YearSummary> years) {this.years = years;}
 }
