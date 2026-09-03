@@ -61,4 +61,34 @@ public class WorkloadSteps {
 
         assertEquals(expectedDuration, duration);
     }
+
+    @Given("a trainer workload exists for username {string} with {int} minutes for {string}")
+    public void trainerWorkloadExists(String username, int duration, String date) {
+        WorkloadRequest request = new WorkloadRequest(
+                username,
+                "John",
+                "Smith",
+                true,
+                LocalDate.parse(date),
+                duration,
+                ActionType.ADD
+        );
+
+        workloadService.applyWorkload(request);
+    }
+
+    @When("I delete a workload for trainer {string} with date {string} and duration {int} minutes")
+    public void deleteWorkload(String username, String date, int duration) {
+        WorkloadRequest request = new WorkloadRequest(
+                username,
+                "John",
+                "Smith",
+                true,
+                LocalDate.parse(date),
+                duration,
+                ActionType.DELETE
+        );
+
+        workloadService.applyWorkload(request);
+    }
 }
