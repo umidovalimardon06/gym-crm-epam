@@ -2,16 +2,12 @@ package cucumber.steps;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gym.domain.TrainingType;
-import com.gym.infrastructure.persistence.entity.TrainerEntity;
-import com.gym.infrastructure.persistence.entity.UserEntity;
 import com.gym.infrastructure.persistence.repository.jpa.TrainerJpaRepository;
 import com.gym.infrastructure.web.dto.trainer.TrainerRegistrationRequest;
-import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -19,14 +15,19 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 public class TrainerRegistrationSteps {
+
     @Autowired
     private MockMvc mockMvc;
+
     @Autowired
     private ObjectMapper objectMapper;
-    @Autowired
-    private PasswordEncoder passwordEncoder;
+
     @Autowired
     private TrainerJpaRepository trainerJpaRepository;
+
+    @Autowired
+    private TestContext testContext;
+
     private ResultActions result;
 
     @When("I register a trainer with first name {string}, last name {string} and specialization {string}")
@@ -46,6 +47,14 @@ public class TrainerRegistrationSteps {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request))
         );
+
+        String username = objectMapper.readTree(
+                result.andReturn()
+                        .getResponse()
+                        .getContentAsString()
+        ).get("username").asText();
+
+        testContext.setTrainerUsername(username);
     }
 
     @When("I update trainer {string} with first name {string}, last name {string} and specialization {string}")
