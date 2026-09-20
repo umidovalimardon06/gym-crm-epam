@@ -1,2 +1,81 @@
+networks:
+  gym-net:
+    driver: bridge
+
 services:
-  $END$
+
+  postgres:
+    image: postgres:16
+    container_name: postgres
+    networks:
+      - gym-net
+    environment:
+      POSTGRES_DB: gymdb
+      POSTGRES_USER: gym
+      POSTGRES_PASSWORD: gym
+    ports:
+      - "5433:5432"
+
+  activemq:
+    image: rmohr/activemq:5.15.9
+    container_name: activemq
+    networks:
+      - gym-net
+    ports:
+      - "61616:61616"
+      - "8161:8161"
+
+  mongodb:
+    image: mongo:7
+    container_name: mongodb
+    networks:
+      - gym-net
+    ports:
+      - "27017:27017"
+
+  discovery-service:
+    build:
+      context: ./discovery-service
+    container_name: discovery-service
+    networks:
+      - gym-net
+    ports:
+      - "8761:8761"
+
+  gym-service:
+    build:
+      context: ./gym-service
+    container_name: gym-service
+    networks:
+      - gym-net
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/gymdb
+      SPRING_DATASOURCE_USERNAME: gym
+      SPRING_DATASOURCE_PASSWORD: gym
+      SPRING_ACTIVEMQ_BROKER_URL: tcp://activemq:61616
+      EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE: http://discovery-service:8761/eureka/
+    depends_on:
+      - postgres
+      - activemq
+      - discovery-service
+
+  workload-service:
+    build:
+      context: ./workload-service
+    container_name: workload-service
+    networks:
+      - gym-net
+    ports:
+      - "8081:8081"
+    environment:
+      SPRING_DATA_MONGODB_URI: mongodb://mongodb:27017/workload
+      SPRING_ACTIVEMQ_BROKER_URL: tcp://activemq:61616
+      EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE: http://discovery-service:8761/eureka/
+      SPRING_AUTOCONFIGURE_EXCLUDE: de.flapdoodle.embed.mongo.spring.autoconfigure.EmbeddedMongoAutoConfiguration
+    depends_on:
+      - mongodb
+      - activemq
+      - discovery-service
